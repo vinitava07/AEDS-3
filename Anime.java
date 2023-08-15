@@ -59,8 +59,14 @@ public class Anime {
     public Anime parseAnime(String arq) {
 
         String animeParsedNumber[];
-        animeParsedNumber = arq.split(",");
-        this.rank = parseAnimeInt(arq, "rank", animeParsedNumber);
+        animeParsedNumber = arq.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+
+        System.out.println(animeParsedNumber.length);
+
+        for (int i = 0; i < animeParsedNumber.length; i++) {
+            System.out.println(animeParsedNumber[i]);
+        }
+        // this.rank = parseAnimeInt(arq, "rank", animeParsedNumber);
         // this.name = parseAnimeString(arq, 1, animeParsedNumber);
         // this.type = parseAnimeString(arq, 2, animeParsedNumber);
         // this.episodes = parseAnimeInt(arq, 3, animeParsedNumber);
@@ -72,7 +78,7 @@ public class Anime {
         // this.description = parseAnimeString(arq, 9, animeParsedNumber);
         // this.content_warning = parseAnimeString(arq, 10, animeParsedNumber);
         // for (int i = 0; i < animeParsedNumber.length; i++) {
-        //     System.out.println(animeParsedNumber[i]);
+        // System.out.println(animeParsedNumber[i]);
         // }
         Anime a = new Anime();
         return a;
