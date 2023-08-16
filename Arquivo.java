@@ -1,5 +1,4 @@
 import java.io.RandomAccessFile;
-import java.util.Arrays;
 
 class Arquivo {
 
@@ -23,22 +22,30 @@ class Arquivo {
             RandomAccessFile rafR = new RandomAccessFile(this.nameCsv, "r");
             RandomAccessFile rafW = new RandomAccessFile(this.nameBin, "rw");
             rafR.readLine();
-            rafR.readLine();
-            rafR.readLine();
             
             a = new Anime();
             
-            // for (int i = 0; i < 10; i++) {
+            int id = -1;
+
+            for (int i = 0; i < 10; i++) {
             
             a.parseAnime(rafR.readLine());
             // System.out.println(a.name.length());
             a.printAttributes();
+
+            int length = 4 + 2 * 3 + a.name.length() + 5 + 4 + a.studio.length() + a.tags.length() + 4 + 8;
+
+
+            rafW.writeInt(length);
+
+            id++;
+            rafW.writeInt(id);
             
             rafW.writeUTF(a.name);
 
             byte[] b = new byte[5]; //write anime type
-            for (int i = 0; i < a.type.length(); i++) {
-                b[i] = (byte)a.type.charAt(i);
+            for (int j = 0; j < a.type.length(); j++) {
+                b[j] = (byte)a.type.charAt(j);
             }
             rafW.write(b);
 
@@ -48,10 +55,14 @@ class Arquivo {
             rafW.writeFloat(a.rating);
             rafW.writeLong(a.release_year.getTime());
 
-            // }
+            }
             // while ((line = rafR.readLine()) != null) {
 
             // }
+
+
+            
+
             rafR.close();
             rafW.close();
 
