@@ -1,4 +1,7 @@
 import java.io.RandomAccessFile;
+import java.text.SimpleDateFormat;
+import java.sql.Timestamp;  
+import java.util.Date;
 
 public class Anime {
     String name;
@@ -7,7 +10,7 @@ public class Anime {
     String studio;
     String tags;
     float rating;
-    int release_year;
+    Timestamp release_year;
 
     Anime() {
         name = "";
@@ -16,11 +19,11 @@ public class Anime {
         studio = "";
         tags = "";
         rating = 0.0f;
-        release_year = 0;
+        release_year = null;
     }
 
     Anime(String name, String type, int episodes, String studio, String tags,
-            float rating, int release_year) {
+            float rating, Timestamp release_year) {
         this.name = name;
         this.type = type;
         this.episodes = episodes;
@@ -37,7 +40,7 @@ public class Anime {
         System.out.println("Studio: " + studio);
         System.out.println("Tags: " + tags);
         System.out.println("Rating: " + rating);
-        // System.out.println("Release Year: " + release_year);
+        System.out.println("Release Year: " + release_year.getTime());
     }
 
     public void parseAnime(String arq) {
@@ -50,7 +53,7 @@ public class Anime {
         this.studio = parseAnimeString("studio", animeInfo);
         this.tags = parseAnimeString("tags", animeInfo);
         this.rating = parseAnimeFloat("rating", animeInfo);
-        // this.release_year
+        this.release_year = parseAnimeTimestamp("release_year" , animeInfo);
     }
 
     public int parseAnimeInt(String attribute, String[] animeInfo) {
@@ -89,5 +92,17 @@ public class Anime {
                 break;
         }
         return value;
+    }
+
+    public Timestamp parseAnimeTimestamp(String attribute , String[] animeInfo) {
+        Timestamp timestamp = null;
+        try {
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy");
+			Date parsedDate = dateFormat.parse(animeInfo[6].replace(".0", ""));
+			timestamp = new java.sql.Timestamp(parsedDate.getTime());
+        } catch (Exception e) {
+            // TODO: handle exception
+        }
+        return timestamp;
     }
 }
