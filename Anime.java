@@ -44,16 +44,9 @@ public class Anime {
 
         String animeInfo[];
         animeInfo = arq.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-
-        // System.out.println(animeInfo.length);
-
-        // for (int i = 0; i < animeInfo.length; i++) {
-        //     System.out.println(animeInfo[i]);
-        // }
-
         this.name = parseAnimeString("name", animeInfo);
         this.type = parseAnimeString("type", animeInfo);
-        this.episodes = parseAnimeInt("episode" , animeInfo);
+        this.episodes = parseAnimeInt("episode", animeInfo);
         this.studio = parseAnimeString("studio", animeInfo);
         this.tags = parseAnimeString("tags", animeInfo);
         this.rating = parseAnimeFloat("rating", animeInfo);
@@ -70,24 +63,25 @@ public class Anime {
 
     public float parseAnimeFloat(String attribute, String[] animeInfo) {
         float number = -1;
-        if(!animeInfo[5].equals("")) number = Float.valueOf(animeInfo[5]);
-        
+        if (!animeInfo[5].equals(""))
+            number = Float.valueOf(animeInfo[5]);
+
         return number;
     }
 
     public String parseAnimeString(String attribute, String[] animeInfo) {
         String value;
-        switch(attribute) {
+        switch (attribute) {
             case "name":
                 value = animeInfo[0];
                 break;
             case "type":
-                value = animeInfo[1] ;
+                value = animeInfo[1];
                 break;
             case "studio":
                 value = animeInfo[3];
                 break;
-            case "tags": 
+            case "tags":
                 value = animeInfo[4].replaceAll("\"", "").replaceAll(",,", ",");
                 break;
             default:
