@@ -1,3 +1,7 @@
+/**lapide       length   id      name        type        episodes    studio     tags       rating      release_year
+ * boolean(1)   int(4)  int(4)   varchar     char(5)      int(4)     varchar    varchar    float(4)    long(8)
+ */
+
 import java.io.RandomAccessFile;
 
 class Arquivo {
@@ -16,7 +20,6 @@ class Arquivo {
     }
 
     public void CsvToByte() {
-        String line;
         Anime anime;
         try {
             RandomAccessFile csvFile = new RandomAccessFile(this.nameCsv, "r");
@@ -33,9 +36,7 @@ class Arquivo {
 
             csvFile.close();
 
-        } catch (
-
-        Exception e) {
+        } catch (Exception e) {
             // TODO: handle exception
         }
     }
