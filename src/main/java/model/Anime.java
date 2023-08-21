@@ -7,15 +7,15 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 public class Anime {
-    String name;
-    String type;
-    int episodes;
-    String studio;
-    String tags;
-    float rating;
-    Timestamp release_year;
+    public String name;
+    public String type;
+    public int episodes;
+    public String studio;
+    public String tags;
+    public float rating;
+    public Timestamp release_year;
 
-    Anime() {
+    public Anime() {
         name = "";
         type = "";
         episodes = 0;
@@ -110,4 +110,5 @@ public class Anime {
         }
         return timestamp;
     }
+
 }
