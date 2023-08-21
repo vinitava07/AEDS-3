@@ -1,6 +1,9 @@
+package model;
+
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
-import java.sql.Timestamp;  
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.Date;
 
 public class Anime {
@@ -46,14 +49,15 @@ public class Anime {
     public void parseAnime(String arq) {
 
         String animeInfo[];
-        animeInfo = arq.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+        animeInfo = arq.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
         this.name = parseAnimeString("name", animeInfo);
         this.type = parseAnimeString("type", animeInfo);
         this.episodes = parseAnimeInt("episode", animeInfo);
         this.studio = parseAnimeString("studio", animeInfo);
         this.tags = parseAnimeString("tags", animeInfo);
         this.rating = parseAnimeFloat("rating", animeInfo);
-        this.release_year = parseAnimeTimestamp("release_year" , animeInfo);
+        // System.out.println(animeInfo[6]);
+        this.release_year = parseAnimeTimestamp("release_year", animeInfo);
     }
 
     public int parseAnimeInt(String attribute, String[] animeInfo) {
@@ -66,7 +70,7 @@ public class Anime {
 
     public float parseAnimeFloat(String attribute, String[] animeInfo) {
         float number = -1;
-        if (!animeInfo[5].equals(""))
+        if (animeInfo[5].isEmpty() && !animeInfo[5].equals(""))
             number = Float.valueOf(animeInfo[5]);
 
         return number;
@@ -94,14 +98,15 @@ public class Anime {
         return value;
     }
 
-    public Timestamp parseAnimeTimestamp(String attribute , String[] animeInfo) {
-        Timestamp timestamp = null;
+    public Timestamp parseAnimeTimestamp(String attribute, String[] animeInfo) {
+        Timestamp timestamp;
+
         try {
-			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy");
-			Date parsedDate = dateFormat.parse(animeInfo[6].replace(".0", ""));
-			timestamp = new java.sql.Timestamp(parsedDate.getTime());
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy");
+            Date parsedDate = dateFormat.parse(animeInfo[6].replace(".0", ""));
+            timestamp = new java.sql.Timestamp(parsedDate.getTime());
         } catch (Exception e) {
-            // TODO: handle exception
+            timestamp = new Timestamp(0);
         }
         return timestamp;
     }
