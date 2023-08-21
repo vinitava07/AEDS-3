@@ -14,4 +14,8 @@ public class Arquivo {
         this.nameBin = binName;
     }
 
+    public Arquivo(String binName) {
+        this.nameBin = binName;
+        this.nameCsv = "";
+    }
 }

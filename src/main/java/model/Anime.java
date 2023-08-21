@@ -25,7 +25,7 @@ public class Anime {
         release_year = null;
     }
 
-    Anime(String name, String type, int episodes, String studio, String tags,
+    public Anime(String name, String type, int episodes, String studio, String tags,
             float rating, Timestamp release_year) {
         this.name = name;
         this.type = type;

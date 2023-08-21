@@ -21,6 +21,11 @@ public class AnimeDAO {
         arquivo = new Arquivo(csv, bin);
     }
 
+    public AnimeDAO(String bin) {
+        anime = new Anime();
+        arquivo = new Arquivo(bin);
+    }
+
     public void CsvToByte() {
         File csv = new File(arquivo.nameCsv);
         File bin = new File(arquivo.nameBin);
@@ -89,5 +94,10 @@ public class AnimeDAO {
         binaryFile.writeLong(anime.release_year.getTime());
 
         binaryFile.close();
+    }
+
+    public void createAnime(Anime anime) throws Exception{
+        File file = new File(this.arquivo.nameBin);
+        writeAnimeBytes(anime, file);
     }
 }
