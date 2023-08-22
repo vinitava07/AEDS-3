@@ -44,6 +44,7 @@ public class Anime {
         System.out.println("Tags: " + tags);
         System.out.println("Rating: " + rating);
         System.out.println("Release Year: " + release_year.getTime());
+        System.out.println();
     }
 
     public void parseAnime(String arq) {
