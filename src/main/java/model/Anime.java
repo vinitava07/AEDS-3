@@ -22,7 +22,7 @@ public class Anime {
         studio = "";
         tags = "";
         rating = 0.0f;
-        release_year = null;
+        release_year = this.longToTimestamp(0);
     }
 
     public Anime(String name, String type, int episodes, String studio, String tags,
@@ -48,7 +48,7 @@ public class Anime {
 
     public void parseAnime(String arq) {
 
-        String animeInfo[];
+        String[] animeInfo;
         animeInfo = arq.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
         this.name = parseAnimeString("name", animeInfo);
         this.type = parseAnimeString("type", animeInfo);
@@ -56,7 +56,6 @@ public class Anime {
         this.studio = parseAnimeString("studio", animeInfo);
         this.tags = parseAnimeString("tags", animeInfo);
         this.rating = parseAnimeFloat("rating", animeInfo);
-        // System.out.println(animeInfo[6]);
         this.release_year = parseAnimeTimestamp("release_year", animeInfo);
     }
 
@@ -70,7 +69,7 @@ public class Anime {
 
     public float parseAnimeFloat(String attribute, String[] animeInfo) {
         float number = -1;
-        if (animeInfo[5].isEmpty() && !animeInfo[5].equals(""))
+        if (!animeInfo[5].equals(""))
             number = Float.valueOf(animeInfo[5]);
 
         return number;
@@ -109,6 +108,19 @@ public class Anime {
             timestamp = new Timestamp(0);
         }
         return timestamp;
+    }
+
+    public Timestamp longToTimestamp(long time) {
+
+        Timestamp timestamp;
+
+        try {
+            timestamp = new Timestamp(time);
+        } catch (Exception e) {
+            timestamp = new Timestamp(0);
+        }
+        return timestamp;
+
     }
 
 }
