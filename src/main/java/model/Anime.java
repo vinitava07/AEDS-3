@@ -124,4 +124,13 @@ public class Anime {
 
     }
 
+    public int getByteLength() {
+        /*
+         * length = id size(int 4) + (utf 2 extra bytes) + name size + type (fixed size of 5) 
+         * + episodes size(int 4) + (utf 2 extra bytes) + studio size + (utf 2 extra bytes)  + tags size 
+         * + rating size(float 4) + release_year size(Timestamp/long 8)
+         */
+        return 4 + (2 + this.name.getBytes().length) + 5 + 4 + (2 + this.studio.getBytes().length)
+        + (2 + this.tags.getBytes().length) + 4 + 8;
+    }
 }

@@ -48,7 +48,7 @@ public class AnimeDAO {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 // System.out.println(animeText);
-                anime.printAttributes();
+                // anime.printAttributes();
                 writeAnimeBytes(anime, bin, contador);
                 contador++;
 
@@ -69,9 +69,7 @@ public class AnimeDAO {
          * episodes size(int) + studio size + tags size + rating size(float) +
          * release_year size(Timestamp)
          */
-        int length = 4 + (2 + anime.name.getBytes().length) + 5 + 4 + (2 + anime.studio.getBytes().length)
-                + (2 + anime.tags.getBytes().length) + 4
-                + 8;
+        int length = anime.getByteLength();
         int lastId = -1;
         RandomAccessFile binaryFile = new RandomAccessFile(bin, "rw");
 
@@ -79,7 +77,7 @@ public class AnimeDAO {
             lastId = binaryFile.readInt() + 1;
             binaryFile.seek(0);
             binaryFile.writeInt(lastId);
-        } catch (Exception e) {
+        } catch (Exception e) { // empty file
             lastId = 0;
             binaryFile.writeInt(lastId);
         }
@@ -115,15 +113,11 @@ public class AnimeDAO {
         writeAnimeBytes(anime, file, 0);
     }
 
-    public void printAnime() {
+    public void printAllAnime() {
         File file = new File(this.arquivo.nameBin);
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
-            Anime anime = new Anime();
-            int ID = 0;
-            byte[] type = new byte[5];
             int lastId = 0;
             int tam;
-            long pos = 4;
             boolean grav = false;
             raf.seek(0);
             lastId = raf.readInt();
@@ -132,34 +126,7 @@ public class AnimeDAO {
                 grav = raf.readBoolean();
                 tam = raf.readInt();
                 if (grav) {
-                    System.out.println();
-                    System.out.println("tam: " + tam);
-                    pos += 5;
-
-                    ID = raf.readInt();
-                    pos += 4;
-                    System.out.println("id: " + ID);
-
-                    anime.name = raf.readUTF();
-                    pos += anime.name.length() + 2;
-
-                    raf.read(type, 0, 5);
-                    anime.type = new String(type, StandardCharsets.UTF_8);
-                    pos += 5;
-
-                    anime.episodes = raf.readInt();
-                    pos += 4;
-
-                    anime.studio = raf.readUTF();
-                    pos += anime.studio.length() + 2;
-
-                    anime.tags = raf.readUTF();
-                    pos += anime.tags.length() + 2;
-
-                    anime.rating = raf.readFloat();
-                    pos += 4;
-                    anime.release_year = anime.longToTimestamp(raf.readLong());
-                    pos += 8;
+                    Anime anime = getRecord(raf);
                     anime.printAttributes();
                 } else {
 
@@ -167,10 +134,35 @@ public class AnimeDAO {
 
                 }
             }
-
+            raf.close();
         } catch (Exception e) {
             // TODO: handle exception
         }
 
+    }
+
+    private Anime getRecord(RandomAccessFile file) throws Exception{
+        Anime anime = new Anime();
+        
+        // int ID = file.readInt();
+        file.seek(file.getFilePointer() + 4);
+
+        anime.name = file.readUTF();
+        
+        byte[] type = new byte[5];
+        file.read(type, 0, 5);
+        anime.type = new String(type, StandardCharsets.UTF_8);
+
+        anime.episodes = file.readInt();
+
+        anime.studio = file.readUTF();
+
+        anime.tags = file.readUTF();
+
+        anime.rating = file.readFloat();
+
+        anime.release_year = anime.longToTimestamp(file.readLong());
+
+        return anime;
     }
 }

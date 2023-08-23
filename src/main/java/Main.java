@@ -7,7 +7,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         AnimeDAO arq = new AnimeDAO("../resources/ListaAnime.csv", "../resources/animeBin.bin");
         arq.csvToByte();
-        arq.printAnime();
+        arq.printAllAnime();
 
     }
 }
