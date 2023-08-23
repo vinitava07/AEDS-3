@@ -44,7 +44,7 @@ public class AnimeDAO {
             RandomAccessFile csvFile = new RandomAccessFile(csv, "r");
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-            while (contador < 100) {
+            while (contador < 18400) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 // System.out.println(animeText);
@@ -87,7 +87,7 @@ public class AnimeDAO {
             binaryFile.writeBoolean(true);
 
         } else {
-            binaryFile.writeBoolean(false);
+            binaryFile.writeBoolean(true);
         }
         binaryFile.writeInt(length);
         binaryFile.writeInt(lastId);
@@ -122,10 +122,11 @@ public class AnimeDAO {
             raf.seek(0);
             lastId = raf.readInt();
             System.out.println("Ultimo id: " + lastId);
-            for (int i = 0; i <= lastId; i++) {
+            for (int i = 0; i <= raf.length(); i += (5 + tam)) {
                 grav = raf.readBoolean();
                 tam = raf.readInt();
                 if (grav) {
+                    raf.seek(raf.getFilePointer() + 4); // ignores the id of the record
                     Anime anime = getRecord(raf);
                     anime.printAttributes();
                 } else {
@@ -143,9 +144,6 @@ public class AnimeDAO {
 
     private Anime getRecord(RandomAccessFile file) throws Exception{
         Anime anime = new Anime();
-        
-        // int ID = file.readInt();
-        file.seek(file.getFilePointer() + 4);
 
         anime.name = file.readUTF();
         
@@ -164,5 +162,34 @@ public class AnimeDAO {
         anime.release_year = anime.longToTimestamp(file.readLong());
 
         return anime;
+    }
+
+    public Anime searchAnimeById(int id) throws Exception{
+        return sequencialSearch(id);
+    }
+    private Anime sequencialSearch(int id) throws Exception{
+        RandomAccessFile file = new RandomAccessFile(arquivo.nameBin , "rw");
+        Anime result = null;
+        if(file.readInt() < id) {
+            //the id search key is grater than the last record's id
+        } else {
+            int recordLength;
+            boolean found = false;
+            for(int i = 4; (i < file.length()) && (!found); i += (5 + recordLength)) {
+                boolean validRecord = file.readBoolean();
+                recordLength = file.readInt();
+                if(id == file.readInt()) {
+                    if(validRecord){
+                        found = true;
+                        result = getRecord(file);
+                    } else {
+                        found = true; //found the id but the record not valid and should not return a record
+                    }
+                }
+                file.seek(file.getFilePointer() + (recordLength - 4));
+            }
+        }
+
+        return result;
     }
 }

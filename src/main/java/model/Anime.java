@@ -43,7 +43,7 @@ public class Anime {
         System.out.println("Studio: " + studio);
         System.out.println("Tags: " + tags);
         System.out.println("Rating: " + rating);
-        System.out.println("Release Year: " + release_year.getTime());
+        System.out.println("Release Date: " + release_year.toInstant());
         System.out.println();
     }
 
