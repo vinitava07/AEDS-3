@@ -80,9 +80,10 @@ public class AnimeDAO {
         binaryFile.seek(binaryFile.length());
 
         /**
-         * the gravestone is the most significant bit of the most significant byte of the record length
+         * the gravestone is the most significant bit of the most significant byte of
+         * the record length
          */
-        binaryFile.writeInt(length); //this 4 bytes contains the record length and the gravestone
+        binaryFile.writeInt(length); // this 4 bytes contains the record length and the gravestone
         binaryFile.writeInt(lastId);
         binaryFile.writeUTF(anime.name);
 
@@ -110,20 +111,25 @@ public class AnimeDAO {
         File file = new File(this.arquivo.nameBin);
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             int lastId = 0;
-            int tam;
+            int recordLength;
+            boolean validRecord;
+            byte[] byteArray = new byte[4];
             raf.seek(0);
             lastId = raf.readInt();
             System.out.println("Ultimo id: " + lastId);
-            for (int i = 0; i <= raf.length(); i += (4 + tam)) {
-                byte[] byteArray = {raf.readByte() , raf.readByte() , raf.readByte() , raf.readByte()};
-                boolean validRecord = isValidRecord(byteArray[0]);
-                tam = getRecordLength(byteArray, validRecord);
+            for (int i = 0; i <= raf.length(); i += (4 + recordLength)) {
+                // byte[] byteArray = { raf.readByte(), raf.readByte(), raf.readByte(),
+                // raf.readByte() };
+                // boolean validRecord = isValidRecord(byteArray[0]);
+                raf.read(byteArray, 0, 4);
+                validRecord = isValidRecord(byteArray[0]);
+                recordLength = getRecordLength(byteArray, validRecord);
                 if (validRecord) {
                     raf.seek(raf.getFilePointer() + 4); // ignores the id of the record
                     Anime anime = getRecord(raf);
                     anime.printAttributes();
                 } else {
-                    raf.seek(raf.getFilePointer() + tam);
+                    raf.seek(raf.getFilePointer() + recordLength);
                 }
             }
             raf.close();
@@ -133,11 +139,11 @@ public class AnimeDAO {
 
     }
 
-    private Anime getRecord(RandomAccessFile file) throws Exception{
+    private Anime getRecord(RandomAccessFile file) throws Exception {
         Anime anime = new Anime();
 
         anime.name = file.readUTF();
-        
+
         byte[] type = new byte[5];
         file.read(type, 0, 5);
         anime.type = new String(type, StandardCharsets.UTF_8);
@@ -155,67 +161,108 @@ public class AnimeDAO {
         return anime;
     }
 
-    public Anime searchAnimeById(int id) throws Exception{
+    public Anime searchAnimeById(int id) throws Exception {
+
         return sequencialSearch(id);
     }
-    private Anime sequencialSearch(int id) throws Exception{
-        RandomAccessFile file = new RandomAccessFile(arquivo.nameBin , "rw");
+
+    private Anime sequencialSearch(int id) throws Exception {
         Anime result = null;
-        if(file.readInt() < id) {
-            //the id search key is grater than the last recorded id
-        } else {
-            int recordLength;
-            boolean found = false;
-            for(int i = 4; (i < file.length()) && (!found); i += (4 + recordLength)) {
-                byte[] byteArray = {file.readByte() , file.readByte() , file.readByte() , file.readByte()};
-                boolean validRecord = isValidRecord(byteArray[0]);
-                recordLength = getRecordLength(byteArray, validRecord);
-                if(id == file.readInt()) {
-                    if(validRecord){
-                        found = true;
-                        result = getRecord(file);
-                    } else {
-                        found = true; //found the id but the record not valid and should not return a record
+        int recordLength;
+        boolean found = false;
+        boolean validRecord;
+        byte[] byteArray = new byte[4];
+        try (RandomAccessFile raf = new RandomAccessFile(arquivo.nameBin, "rw")) {
+
+            if (raf.readInt() < id) {
+                System.out.println("ID maior do que os cadastrados!");
+                // the id search key is grater than the last recorded id
+            } else {
+                for (int i = 4; (i < raf.length()) && (!found); i += (4 + recordLength)) {
+                    // byte[] byteArray = { raf.readByte(), raf.readByte(), raf.readByte(),
+                    // raf.readByte() };
+                    raf.read(byteArray, 0, 4);
+                    validRecord = isValidRecord(byteArray[0]);
+                    recordLength = getRecordLength(byteArray, validRecord);
+                    if (id == raf.readInt()) {
+                        if (validRecord) {
+                            found = true;
+                            result = getRecord(raf);
+                            System.out.println("Registro econtrado!");
+
+                        } else {
+                            System.out.println("Registro foi excluido!");
+                            found = true; // found the id but the record not valid and should not return a record
+                        }
                     }
+                    raf.seek(raf.getFilePointer() + (recordLength - 4));
                 }
-                file.seek(file.getFilePointer() + (recordLength - 4));
             }
+        } catch (Exception e) {
+            // TODO: handle exception
         }
 
+        if (!found) {
+            System.out.println("O registro não existe!");
+        }
         return result;
     }
 
-    public Anime removeAnime(int where) throws Exception{
+    public Anime removeAnime(int where) throws Exception {
         return sequencialDelete(where);
     }
-    private Anime sequencialDelete(int where) throws Exception{
-        RandomAccessFile file = new RandomAccessFile(arquivo.nameBin , "rw");
+
+    private Anime sequencialDelete(int where) throws Exception {
+
         Anime deletedRecord = null;
-        if(file.readInt() < where) {
-            //the id search key is grater than the last recorded id
-        } else {
-            int recordLength;
-            boolean found = false;
-            for(int i = 4; (i < file.length()) && (!found); i += (5 + recordLength)) {
-                byte[] byteArray = {file.readByte() , file.readByte() , file.readByte() , file.readByte()};
-                boolean validRecord = isValidRecord(byteArray[0]);
-                recordLength = getRecordLength(byteArray, validRecord);
-                if(where == file.readInt()) {
-                    if(validRecord){
-                        found = true;
-                        deleteRecord(file , byteArray);
-                        deletedRecord = getRecord(file);
-                    } else {
-                        found = true; //found the id but the record not valid and should not return a record
+
+        try (RandomAccessFile raf = new RandomAccessFile(arquivo.nameBin, "rw")) {
+            byte[] byteArray = new byte[4];
+            boolean validRecord;
+            if (raf.readInt() < where) {
+                System.out.println("O ID não existe");
+                // the id search key is grater than the last recorded id
+            } else {
+                int recordLength;
+                boolean found = false;
+                for (int i = 4; (i < raf.length()) && (!found); i += (5 + recordLength)) {
+
+                    // byte[] byteArray = { raf.readByte(), raf.readByte(), raf.readByte(),
+                    // raf.readByte() };
+                    // boolean validRecord = isValidRecord(byteArray[0]);
+                    // recordLength = getRecordLength(byteArray, validRecord);
+                    raf.read(byteArray, 0, 4);
+                    validRecord = isValidRecord(byteArray[0]);
+                    recordLength = getRecordLength(byteArray, validRecord);
+
+                    if (where == raf.readInt()) {
+
+                        if (validRecord) {
+                            found = true;
+                            deleteRecord(raf, byteArray);
+                            deletedRecord = getRecord(raf);
+                            System.out.println("Registro deletado!");
+                        } else {
+                            System.out.println("O registro já foi deletado");
+                            found = true; // found the id but the record not valid and should not return a record
+                        }
                     }
+                    raf.seek(raf.getFilePointer() + (recordLength - 4));
                 }
-                file.seek(file.getFilePointer() + (recordLength - 4));
+                if (!found) {
+                    System.out.println("Registro não encontrado!");
+                }
             }
+        } catch (Exception e) {
+            // TODO: handle exception
         }
 
         return deletedRecord;
     }
-    private void deleteRecord(RandomAccessFile file , byte[] b) throws Exception{
+
+    }
+
+    private void deleteRecord(RandomAccessFile file, byte[] b) throws Exception {
         System.out.println(ByteBuffer.wrap(b).getInt());
         b[0] ^= (1 << 7); // sets the signal bit to 1, logicaly removing the record
         file.seek(file.getFilePointer() - 8);
@@ -224,20 +271,22 @@ public class AnimeDAO {
         file.seek(file.getFilePointer() + 4);
     }
 
-
     private boolean isValidRecord(byte b) {
-        //since the most significant bit of this byte is the gravestone, if b is negative then the record is not valid
+        // since the most significant bit of this byte is the gravestone, if b is
+        // negative then the record is not valid
         return (b >= 0);
     }
-    private int getRecordLength(byte[] byteArray , boolean isValid) {
+
+    private int getRecordLength(byte[] byteArray, boolean isValid) {
         int length = 0;
-        if(isValid){
+        if (isValid) {
             length = ByteBuffer.wrap(byteArray).getInt();
         } else {
-            /*since the record is not valid it means the signal bit is 1
-             *to revert this without losing the byte data
-             *an XOR operation is made with the byte: 0b10000000
-            */
+            /*
+             * since the record is not valid it means the signal bit is 1
+             * to revert this without losing the byte data
+             * an XOR operation is made with the byte: 0b10000000
+             */
             byteArray[0] ^= (1 << 7);
             length = ByteBuffer.wrap(byteArray).getInt();
         }
