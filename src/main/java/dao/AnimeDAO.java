@@ -9,6 +9,7 @@ import java.io.File;
  */
 
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import model.Anime;
@@ -44,7 +45,7 @@ public class AnimeDAO {
             RandomAccessFile csvFile = new RandomAccessFile(csv, "r");
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-            while (contador < 18400) {
+            while (contador < 100) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 // System.out.println(animeText);
@@ -63,12 +64,6 @@ public class AnimeDAO {
 
     private void writeAnimeBytes(Anime anime, File bin, int x) throws Exception {
 
-        /*
-         * length = id size(int) + (writeUTF extra 2 bytes * number of uses) + name size
-         * + type fixed size of 5 +
-         * episodes size(int) + studio size + tags size + rating size(float) +
-         * release_year size(Timestamp)
-         */
         int length = anime.getByteLength();
         int lastId = -1;
         RandomAccessFile binaryFile = new RandomAccessFile(bin, "rw");
@@ -77,19 +72,17 @@ public class AnimeDAO {
             lastId = binaryFile.readInt() + 1;
             binaryFile.seek(0);
             binaryFile.writeInt(lastId);
-        } catch (Exception e) { // empty file
+        } catch (Exception e) {
+            // empty file
             lastId = 0;
             binaryFile.writeInt(lastId);
         }
-
         binaryFile.seek(binaryFile.length());
-        if (x % 2 == 0) {
-            binaryFile.writeBoolean(true);
 
-        } else {
-            binaryFile.writeBoolean(true);
-        }
-        binaryFile.writeInt(length);
+        /**
+         * the gravestone is the most significant bit of the most significant byte of the record length
+         */
+        binaryFile.writeInt(length); //this 4 bytes contains the record length and the gravestone
         binaryFile.writeInt(lastId);
         binaryFile.writeUTF(anime.name);
 
@@ -118,26 +111,24 @@ public class AnimeDAO {
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             int lastId = 0;
             int tam;
-            boolean grav = false;
             raf.seek(0);
             lastId = raf.readInt();
             System.out.println("Ultimo id: " + lastId);
-            for (int i = 0; i <= raf.length(); i += (5 + tam)) {
-                grav = raf.readBoolean();
-                tam = raf.readInt();
-                if (grav) {
+            for (int i = 0; i <= raf.length(); i += (4 + tam)) {
+                byte[] byteArray = {raf.readByte() , raf.readByte() , raf.readByte() , raf.readByte()};
+                boolean validRecord = isValidRecord(byteArray[0]);
+                tam = getRecordLength(byteArray, validRecord);
+                if (validRecord) {
                     raf.seek(raf.getFilePointer() + 4); // ignores the id of the record
                     Anime anime = getRecord(raf);
                     anime.printAttributes();
                 } else {
-
                     raf.seek(raf.getFilePointer() + tam);
-
                 }
             }
             raf.close();
         } catch (Exception e) {
-            // TODO: handle exception
+            System.err.println(e.getLocalizedMessage());
         }
 
     }
@@ -171,13 +162,14 @@ public class AnimeDAO {
         RandomAccessFile file = new RandomAccessFile(arquivo.nameBin , "rw");
         Anime result = null;
         if(file.readInt() < id) {
-            //the id search key is grater than the last record's id
+            //the id search key is grater than the last recorded id
         } else {
             int recordLength;
             boolean found = false;
-            for(int i = 4; (i < file.length()) && (!found); i += (5 + recordLength)) {
-                boolean validRecord = file.readBoolean();
-                recordLength = file.readInt();
+            for(int i = 4; (i < file.length()) && (!found); i += (4 + recordLength)) {
+                byte[] byteArray = {file.readByte() , file.readByte() , file.readByte() , file.readByte()};
+                boolean validRecord = isValidRecord(byteArray[0]);
+                recordLength = getRecordLength(byteArray, validRecord);
                 if(id == file.readInt()) {
                     if(validRecord){
                         found = true;
@@ -191,5 +183,65 @@ public class AnimeDAO {
         }
 
         return result;
+    }
+
+    public Anime removeAnime(int where) throws Exception{
+        return sequencialDelete(where);
+    }
+    private Anime sequencialDelete(int where) throws Exception{
+        RandomAccessFile file = new RandomAccessFile(arquivo.nameBin , "rw");
+        Anime deletedRecord = null;
+        if(file.readInt() < where) {
+            //the id search key is grater than the last recorded id
+        } else {
+            int recordLength;
+            boolean found = false;
+            for(int i = 4; (i < file.length()) && (!found); i += (5 + recordLength)) {
+                byte[] byteArray = {file.readByte() , file.readByte() , file.readByte() , file.readByte()};
+                boolean validRecord = isValidRecord(byteArray[0]);
+                recordLength = getRecordLength(byteArray, validRecord);
+                if(where == file.readInt()) {
+                    if(validRecord){
+                        found = true;
+                        deleteRecord(file , byteArray);
+                        deletedRecord = getRecord(file);
+                    } else {
+                        found = true; //found the id but the record not valid and should not return a record
+                    }
+                }
+                file.seek(file.getFilePointer() + (recordLength - 4));
+            }
+        }
+
+        return deletedRecord;
+    }
+    private void deleteRecord(RandomAccessFile file , byte[] b) throws Exception{
+        System.out.println(ByteBuffer.wrap(b).getInt());
+        b[0] ^= (1 << 7); // sets the signal bit to 1, logicaly removing the record
+        file.seek(file.getFilePointer() - 8);
+        System.out.println(ByteBuffer.wrap(b).getInt());
+        file.write(b, 0, 4);
+        file.seek(file.getFilePointer() + 4);
+    }
+
+
+    private boolean isValidRecord(byte b) {
+        //since the most significant bit of this byte is the gravestone, if b is negative then the record is not valid
+        return (b >= 0);
+    }
+    private int getRecordLength(byte[] byteArray , boolean isValid) {
+        int length = 0;
+        if(isValid){
+            length = ByteBuffer.wrap(byteArray).getInt();
+        } else {
+            /*since the record is not valid it means the signal bit is 1
+             *to revert this without losing the byte data
+             *an XOR operation is made with the byte: 0b10000000
+            */
+            byteArray[0] ^= (1 << 7);
+            length = ByteBuffer.wrap(byteArray).getInt();
+        }
+
+        return length;
     }
 }
