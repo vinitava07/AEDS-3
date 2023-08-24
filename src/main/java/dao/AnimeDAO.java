@@ -43,6 +43,8 @@ public class AnimeDAO {
         }
         try {
             RandomAccessFile csvFile = new RandomAccessFile(csv, "r");
+            RandomAccessFile binFile = new RandomAccessFile(bin, "rw");
+
             csvFile.readLine(); // read csv file header
             anime = new Anime();
             while (contador < 100) {
@@ -50,11 +52,13 @@ public class AnimeDAO {
                 anime.parseAnime(animeText);
                 // System.out.println(animeText);
                 // anime.printAttributes();
-                writeAnimeBytes(anime, bin, contador);
+                writeAnimeBytes(anime, binFile, contador);
+
                 contador++;
 
             }
             csvFile.close();
+            binFile.close();
 
         } catch (Exception e) {
 
@@ -62,49 +66,50 @@ public class AnimeDAO {
         }
     }
 
-    private void writeAnimeBytes(Anime anime, File bin, int x) throws Exception {
+    private void writeAnimeBytes(Anime anime, RandomAccessFile raf, int x) throws Exception {
 
         int length = anime.getByteLength();
         int lastId = -1;
-        RandomAccessFile binaryFile = new RandomAccessFile(bin, "rw");
 
         try {
-            lastId = binaryFile.readInt() + 1;
-            binaryFile.seek(0);
-            binaryFile.writeInt(lastId);
+            raf.seek(0);// set the file pointer to pos 0
+            lastId = raf.readInt() + 1;
+            raf.seek(0);
+            raf.writeInt(lastId);
         } catch (Exception e) {
             // empty file
             lastId = 0;
-            binaryFile.writeInt(lastId);
+            raf.writeInt(lastId);
         }
-        binaryFile.seek(binaryFile.length());
+        raf.seek(raf.length());
 
         /**
          * the gravestone is the most significant bit of the most significant byte of
          * the record length
          */
-        binaryFile.writeInt(length); // this 4 bytes contains the record length and the gravestone
-        binaryFile.writeInt(lastId);
-        binaryFile.writeUTF(anime.name);
+        raf.writeInt(length); // this 4 bytes contains the record length and the gravestone
+        raf.writeInt(lastId);
+        raf.writeUTF(anime.name);
 
         byte[] type = new byte[5]; // write anime type
         for (int j = 0; j < anime.type.length(); j++) {
             type[j] = (byte) anime.type.charAt(j);
         }
-        binaryFile.write(type);
+        raf.write(type);
 
-        binaryFile.writeInt(anime.episodes);
-        binaryFile.writeUTF(anime.studio);
-        binaryFile.writeUTF(anime.tags);
-        binaryFile.writeFloat(anime.rating);
-        binaryFile.writeLong(anime.release_year.getTime());
+        raf.writeInt(anime.episodes);
+        raf.writeUTF(anime.studio);
+        raf.writeUTF(anime.tags);
+        raf.writeFloat(anime.rating);
+        raf.writeLong(anime.release_year.getTime());
 
-        binaryFile.close();
     }
 
     public void createAnime(Anime anime) throws Exception {
         File file = new File(this.arquivo.nameBin);
-        writeAnimeBytes(anime, file, 0);
+        RandomAccessFile raf = new RandomAccessFile(file, "rw");
+        writeAnimeBytes(anime, raf, 0);
+        raf.close();
     }
 
     public void printAllAnime() {
@@ -117,19 +122,20 @@ public class AnimeDAO {
             raf.seek(0);
             lastId = raf.readInt();
             System.out.println("Ultimo id: " + lastId);
-            for (int i = 0; i <= raf.length(); i += (4 + recordLength)) {
+            for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
                 // byte[] byteArray = { raf.readByte(), raf.readByte(), raf.readByte(),
                 // raf.readByte() };
                 // boolean validRecord = isValidRecord(byteArray[0]);
                 raf.read(byteArray, 0, 4);
                 validRecord = isValidRecord(byteArray[0]);
                 recordLength = getRecordLength(byteArray, validRecord);
+                long filePointer = raf.getFilePointer();
                 if (validRecord) {
-                    raf.seek(raf.getFilePointer() + 4); // ignores the id of the record
+                    raf.seek(filePointer + 4); // ignores the id of the record
                     Anime anime = getRecord(raf);
                     anime.printAttributes();
                 } else {
-                    raf.seek(raf.getFilePointer() + recordLength);
+                    raf.seek(filePointer + recordLength);
                 }
             }
             raf.close();
@@ -139,24 +145,24 @@ public class AnimeDAO {
 
     }
 
-    private Anime getRecord(RandomAccessFile file) throws Exception {
+    private Anime getRecord(RandomAccessFile raf) throws Exception {
         Anime anime = new Anime();
 
-        anime.name = file.readUTF();
+        anime.name = raf.readUTF();
 
         byte[] type = new byte[5];
-        file.read(type, 0, 5);
+        raf.read(type, 0, 5);
         anime.type = new String(type, StandardCharsets.UTF_8);
 
-        anime.episodes = file.readInt();
+        anime.episodes = raf.readInt();
 
-        anime.studio = file.readUTF();
+        anime.studio = raf.readUTF();
 
-        anime.tags = file.readUTF();
+        anime.tags = raf.readUTF();
 
-        anime.rating = file.readFloat();
+        anime.rating = raf.readFloat();
 
-        anime.release_year = anime.longToTimestamp(file.readLong());
+        anime.release_year = anime.longToTimestamp(raf.readLong());
 
         return anime;
     }
@@ -191,13 +197,14 @@ public class AnimeDAO {
                             System.out.println("Registro econtrado!");
 
                         } else {
-                            System.out.println("Registro foi excluido!");
+                            System.out.println("Registro foi excluido anteriormente!");
                             found = true; // found the id but the record not valid and should not return a record
                         }
                     }
                     raf.seek(raf.getFilePointer() + (recordLength - 4));
                 }
             }
+            raf.close();
         } catch (Exception e) {
             // TODO: handle exception
         }
@@ -208,18 +215,18 @@ public class AnimeDAO {
         return result;
     }
 
-    public Anime removeAnime(int where) throws Exception {
-        return sequencialDelete(where);
+    public Anime removeAnime(int id) throws Exception {
+        return sequencialDelete(id);
     }
 
-    private Anime sequencialDelete(int where) throws Exception {
+    private Anime sequencialDelete(int id) throws Exception {
 
         Anime deletedRecord = null;
 
         try (RandomAccessFile raf = new RandomAccessFile(arquivo.nameBin, "rw")) {
             byte[] byteArray = new byte[4];
             boolean validRecord;
-            if (raf.readInt() < where) {
+            if (raf.readInt() < id) {
                 System.out.println("O ID não existe");
                 // the id search key is grater than the last recorded id
             } else {
@@ -235,11 +242,11 @@ public class AnimeDAO {
                     validRecord = isValidRecord(byteArray[0]);
                     recordLength = getRecordLength(byteArray, validRecord);
 
-                    if (where == raf.readInt()) {
+                    if (id == raf.readInt()) {
 
                         if (validRecord) {
                             found = true;
-                            deleteRecord(raf, byteArray);
+                            changeGraveyard(raf, byteArray);
                             deletedRecord = getRecord(raf);
                             System.out.println("Registro deletado!");
                         } else {
@@ -253,6 +260,7 @@ public class AnimeDAO {
                     System.out.println("Registro não encontrado!");
                 }
             }
+            raf.close();
         } catch (Exception e) {
             // TODO: handle exception
         }
@@ -260,13 +268,11 @@ public class AnimeDAO {
         return deletedRecord;
     }
 
-    }
-
-    private void deleteRecord(RandomAccessFile file, byte[] b) throws Exception {
-        System.out.println(ByteBuffer.wrap(b).getInt());
-        b[0] ^= (1 << 7); // sets the signal bit to 1, logicaly removing the record
+    private void changeGraveyard(RandomAccessFile file, byte[] b) throws Exception {
+        // System.out.println(ByteBuffer.wrap(b).getInt());
+        b[0] ^= (1 << 7); // sets the signal bit to 1, logicaly (removing) switching the record
         file.seek(file.getFilePointer() - 8);
-        System.out.println(ByteBuffer.wrap(b).getInt());
+        // System.out.println(ByteBuffer.wrap(b).getInt());
         file.write(b, 0, 4);
         file.seek(file.getFilePointer() + 4);
     }
@@ -277,9 +283,9 @@ public class AnimeDAO {
         return (b >= 0);
     }
 
-    private int getRecordLength(byte[] byteArray, boolean isValid) {
+    private int getRecordLength(byte[] byteArray, boolean isGraveyard) {
         int length = 0;
-        if (isValid) {
+        if (isGraveyard) {
             length = ByteBuffer.wrap(byteArray).getInt();
         } else {
             /*
