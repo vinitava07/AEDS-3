@@ -329,6 +329,7 @@ public class AnimeDAO {
         int recordId;
         int newAnimeSize = a.getByteLength();
         Record r = new Record();
+        long filePointer;
         r.setAnime(a);
         try (RandomAccessFile raf = new RandomAccessFile(arquivo.nameBin, "rw")) {
             if (raf.readInt() < id) {
@@ -341,6 +342,7 @@ public class AnimeDAO {
                     validRecord = isValidRecord(byteArray[0]);
                     recordLength = getRecordLength(byteArray, validRecord);
                     recordId = raf.readInt();
+                    filePointer = raf.getFilePointer();
                     if (id == recordId) {
                         if (validRecord) {
                             found = true;
@@ -353,6 +355,9 @@ public class AnimeDAO {
                                 writeAnimeBytes(r, raf, true);
 
                             } else {
+                                raf.seek(filePointer - 4 - 4);
+                                changeGraveyard(raf, byteArray);
+                                raf.seek(filePointer + 8);
                                 writeAnimeBytes(r, raf, false);
 
                             }

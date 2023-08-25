@@ -15,11 +15,11 @@ public class Main {
        arq.csvToByte();
         // arq.removeAnime(99);
 
-        // Anime a = new Anime(
-        //         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASAJFDSJFJHFJDASJFSHFSDJFHASFHKLADSFDASHFLADSJLFHADSFJADSHLFJKA SDFHLASDFAASDLJJJJJJJJJFHDSLJKFHASLFJKSADF HSADJF ADSJF HJLASLF HADSFJL SHF",
-        //         "null", 0, "gdsfgdsfgdsfdsgdfg",
-        //         "nulddgfdgdfgdgdfgdsfgdgdgdfgdfgdfgdgdsggdgdfgdgdgdgdgdfgdfgdfggsdfgdsgl", 0, ts);
-        Anime a = new Anime("null", "null", 0, "null", "null", 0, ts);
+        Anime a = new Anime(
+                "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASAJFDSJFJHFJDASJFSHFSDJFHASFHKLADSFDASHFLADSJLFHADSFJADSHLFJKA SDFHLASDFAASDLJJJJJJJJJFHDSLJKFHASLFJKSADF HSADJF ADSJF HJLASLF HADSFJL SHF",
+                "null", 0, "gdsfgdsfgdsfdsgdfg",
+                "nulddgfdgdfgdgdfgdsfgdgdgdfgdfgdfgdgdsggdgdfgdgdgdgdgdfgdfgdfggsdfgdsgl", 0, ts);
+        // Anime a = new Anime("null", "null", 0, "null", "null", 0, ts);
         arq.updateRecord(5, a);
         arq.printAllAnime();
         // Anime anime = arq.searchAnimeById(12);
