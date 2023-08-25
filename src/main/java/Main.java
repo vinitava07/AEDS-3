@@ -22,9 +22,9 @@ public class Main {
         // Anime a = new Anime("null", "null", 0, "null", "null", 0, ts);
         // arq.updateRecord(0, a);
         // arq.printAllAnime();
-        // Anime anime = arq.searchAnimeById(12);
+        // Anime anime = arq.searchAnimeByIad(12);
         // if (anime != null) {
-
+        int x = 3;
         // anime.printAttributes();
         // }
     }
