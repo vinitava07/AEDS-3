@@ -262,7 +262,10 @@ public class AnimeDAO {
 
                         if (validRecord) {
                             found = true;
+                            long filePointer = raf.getFilePointer();
+                            raf.seek(filePointer - 8);
                             changeGraveyard(raf, byteArray);
+                            raf.seek(filePointer);
                             deletedRecord = getRecord(raf);
                             System.out.println("Registro deletado!");
                         } else {
@@ -287,10 +290,8 @@ public class AnimeDAO {
     private void changeGraveyard(RandomAccessFile file, byte[] b) throws Exception {
         // System.out.println(ByteBuffer.wrap(b).getInt());
         b[0] ^= (1 << 7); // sets the signal bit to 1, logicaly (removing) switching the record
-        file.seek(file.getFilePointer() - 8);
         // System.out.println(ByteBuffer.wrap(b).getInt());
         file.write(b, 0, 4);
-        file.seek(file.getFilePointer() + 4);
     }
 
     private boolean isValidRecord(byte b) {
@@ -355,9 +356,9 @@ public class AnimeDAO {
                                 writeAnimeBytes(r, raf, true);
 
                             } else {
-                                raf.seek(filePointer - 4 - 4);
+                                raf.seek(filePointer - 8);
                                 changeGraveyard(raf, byteArray);
-                                raf.seek(filePointer + 8);
+                                raf.seek(filePointer);
                                 writeAnimeBytes(r, raf, false);
 
                             }

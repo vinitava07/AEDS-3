@@ -10,18 +10,18 @@ import model.Arquivo;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        AnimeDAO arq = new AnimeDAO("../resources/ListaAnime.csv", "../resources/animeBin.bin");
-        Timestamp ts = new Timestamp(0);
-       arq.csvToByte();
-        // arq.removeAnime(99);
+        // AnimeDAO arq = new AnimeDAO("../resources/ListaAnime.csv", "../resources/animeBin.bin");
+        // Timestamp ts = new Timestamp(0);
+        // arq.csvToByte();
+        // arq.removeAnime(0);
 
-        Anime a = new Anime(
-                "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASAJFDSJFJHFJDASJFSHFSDJFHASFHKLADSFDASHFLADSJLFHADSFJADSHLFJKA SDFHLASDFAASDLJJJJJJJJJFHDSLJKFHASLFJKSADF HSADJF ADSJF HJLASLF HADSFJL SHF",
-                "null", 0, "gdsfgdsfgdsfdsgdfg",
-                "nulddgfdgdfgdgdfgdsfgdgdgdfgdfgdfgdgdsggdgdfgdgdgdgdgdfgdfgdfggsdfgdsgl", 0, ts);
+        // Anime a = new Anime(
+        //         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASAJFDSJFJHFJDASJFSHFSDJFHASFHKLADSFDASHFLADSJLFHADSFJADSHLFJKA SDFHLASDFAASDLJJJJJJJJJFHDSLJKFHASLFJKSADF HSADJF ADSJF HJLASLF HADSFJL SHF",
+        //         "null", 0, "gdsfgdsfgdsfdsgdfg",
+        //         "nulddgfdgdfgdgdfgdsfgdgdgdfgdfgdfgdgdsggdgdfgdgdgdgdgdfgdfgdfggsdfgdsgl", 0, ts);
         // Anime a = new Anime("null", "null", 0, "null", "null", 0, ts);
-        arq.updateRecord(5, a);
-        arq.printAllAnime();
+        // arq.updateRecord(0, a);
+        // arq.printAllAnime();
         // Anime anime = arq.searchAnimeById(12);
         // if (anime != null) {
 
