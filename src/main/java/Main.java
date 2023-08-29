@@ -16,7 +16,10 @@ public class Main {
         Arquivo arquivo = new Arquivo("../resources/ListaAnime.csv", "../resources/animeBin.bin");
         RecordDAO recordDAO = new RecordDAO(arquivo);
 
-        recordDAO.intercalacaoBalanceada(3, 5);
+        recordDAO.intercalacaoBalanceada(2, 4);
+
+//        AnimeDAO animeDAO = new AnimeDAO("f2.bin");
+//        animeDAO.printAllAnime(false);
 //        arq.csvToByte();
 
 //         arq.removeAnime(0);

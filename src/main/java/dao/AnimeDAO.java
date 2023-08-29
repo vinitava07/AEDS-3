@@ -54,7 +54,7 @@ public class AnimeDAO {
 
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-            while (contador < 10) {
+            while (contador < 32) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 r.setAnime(anime);
@@ -139,6 +139,37 @@ public class AnimeDAO {
         r.setAnime(anime);
         writeAnimeBytes(r, raf, false);
         raf.close();
+    }
+
+    public void printAllAnime(boolean lastID) {
+        File file = new File(this.arquivo.nameBin);
+        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+            int lastId = 0;
+            int recordLength;
+            boolean validRecord;
+            byte[] byteArray = new byte[4];
+            raf.seek(0);
+            //lastId = raf.readInt();
+            System.out.println("Ultimo id: " + lastId);
+            for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
+                raf.read(byteArray, 0, 4);
+                validRecord = isValidRecord(byteArray[0]);
+                recordLength = getRecordLength(byteArray, validRecord);
+                long filePointer = raf.getFilePointer();
+                if (validRecord) {
+                    raf.seek(filePointer + 4); // ignores the id of the record
+                    Anime anime = getAnime(raf);
+                    anime.printAttributes();
+                    raf.seek(filePointer + recordLength);
+                } else {
+                    raf.seek(filePointer + recordLength);
+                }
+            }
+            raf.close();
+        } catch (Exception e) {
+            System.err.println(e.getLocalizedMessage());
+        }
+
     }
 
     public void printAllAnime() {
