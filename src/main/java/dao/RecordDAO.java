@@ -2,6 +2,7 @@ package dao;
 
 import model.Arquivo;
 import model.Record;
+import model.Tape;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,6 +14,8 @@ import java.util.Comparator;
 public class RecordDAO extends AnimeDAO {
     Record r;
     Arquivo arquivo;
+
+    int qtdRegistros = 0;
 
     public RecordDAO() {
         super();
@@ -75,6 +78,7 @@ public class RecordDAO extends AnimeDAO {
                     record = getRecord(raf);
                     if (!record.getGraveyard()) {// se for tumulo ignora ele
                         records.add(record);
+                        this.qtdRegistros++;
                     } else {
                         i--;
                     }
@@ -108,55 +112,113 @@ public class RecordDAO extends AnimeDAO {
     }
 
     private void intercalation(String[] fileNames, int caminhos, int bloco) {
-        try {
-            int[] posArq = new int[caminhos];
-            RandomAccessFile[] files = new RandomAccessFile[caminhos * 2];
-            int menorPos = 0;
-            int countFile = caminhos;
-            int aux = 0;
-            boolean endfile;
-            int blockSize = bloco;
-            Record min = new Record();
-            Record[] nRecord = new Record[caminhos];
-            ArrayList<Record> records = new ArrayList<>();
 
+        try {
+//            ArrayList<Record> recordArrayList = new ArrayList<>();
+            Record minRecord = new Record();
+            Tape[] tape = new Tape[caminhos];
             for (int i = 0; i < caminhos; i++) {
-                posArq[i] = 0;
+                tape[i] = new Tape();
             }
+            int[] arquivos = new int[caminhos * 2];
+            for (int i = 0; i < caminhos * 2; i++) {
+                arquivos[i] = i;
+            }
+            boolean firstIteration = true;
+            int posLido = 0;
+            boolean allBlocksRead = false;
+
+            int fileToWrite = caminhos;
+            int tamBloco = bloco;
+            boolean caminhoUltimos = true;
+            RandomAccessFile[] files = new RandomAccessFile[caminhos * 2];
+            while (tamBloco < this.qtdRegistros) {
             for (int i = 0; i < caminhos * 2; i++) {
                 files[i] = new RandomAccessFile(fileNames[i], "rw");
             }
-            while (Arrays.stream(posArq).min().getAsInt() < blockSize) {
-                System.out.println(Arrays.stream(posArq).min().getAsInt());
-                for (int i = 0; i < caminhos; i++) {
-                    if (posArq[i] < blockSize) {
-                        records.add(getRecord(files[posArq[i]]));
+            int contador = 0;
+            while (tamBloco < this.qtdRegistros) {
+                while (contador < Math.ceil(this.qtdRegistros / tamBloco)) {
+                    while (allBlocksRead == false) {
+                        if (firstIteration) {
+                            for (int i = 0; i < caminhos; i++) {
+                                tape[i].record = getRecord(files[i]);
+                            }
+                            firstIteration = false;
+                        } else {
+                            if (tape[posLido].canRead) {
+                                tape[posLido].record = getRecord(files[posLido]);
+                            }
+                        }
+                        boolean repeat = true;
+                        for (int i = 0; repeat && i < caminhos; i++) {
+                            if (tape[i].canRead) {
+                                minRecord = tape[i].record;
+                                repeat = false;
+                            }
+                        }
+                        for (int i = 0; i < caminhos; i++) {
+                            if (tape[i].canRead && tape[i].record.getId() <= minRecord.getId()) {
+                                minRecord = tape[i].record;
+                                posLido = i;
+                            }
+                        }
+
+                        writeAnimeBytes(minRecord, files[fileToWrite], false);
+
+                        tape[posLido].filePointer++;
+                        if (tape[posLido].filePointer == tamBloco) {
+                            tape[posLido].canRead = false;
+                        }
+                        int countCantRead = 0;
+                        for (int i = 0; i < caminhos; i++) {
+                            if (tape[i].canRead == false) {
+                                countCantRead++;
+                            }
+                        }
+                        if (countCantRead == caminhos) {
+                            allBlocksRead = true;
+                        }
+
                     }
-                }
-
-                min = records.get(0);
-                menorPos = 0;
-                for (int i = 1; i < records.size(); i++) {
-                    if (records.get(i).getId() < min.getId()) {
-                        min = records.get(i);
-                        menorPos = i;
+                    for (int i = 0; i < caminhos; i++) {
+                        tape[i].canRead = true;
+                        tape[i].filePointer = 0;
                     }
+                    firstIteration = true;
+                    allBlocksRead = false;
+                    System.out.println(fileToWrite);
+                    if (caminhoUltimos) {
+                        if (fileToWrite == (caminhos * 2) - 1) {
+                            fileToWrite = caminhos;
+                        } else {
+                            fileToWrite++;
+                        }
+                    } else {
+                        if (fileToWrite == caminhos - 1) {
+                            fileToWrite = 0;
+                        } else {
+                            fileToWrite++;
+                        }
+                    }
+
+                    contador++;
                 }
-
-                posArq[menorPos]++;
-                writeAnimeBytes(records.get(0), files[2], false);
-//                records.sort(Comparator.comparingInt(Record::getId));
-//                for (int i = 0; i <records.size() ; i++) {
-//                    records.get(i).getAnime().printAttributes();
-//                }
-
-//                records.clear();
-//                posArq[menorPos]++;
-//                writeAnimeBytes(min, files[countFile], false);
-                //  countFile = (countFile + 1) % (caminhos * 2);
+                caminhoUltimos = !caminhoUltimos;
+                if (caminhoUltimos) {
+                    fileToWrite = caminhos;
+                } else {
+                    fileToWrite = 0;
+                }
+                tamBloco = tamBloco * caminhos;
             }
+            }
+//            System.out.println("tape fp:");
+//            for (int i = 0; i < caminhos; i++) {
+//                System.out.println(tape[i].filePointer);
+//            }
         } catch (Exception e) {
-            System.out.println("erro intercalation " + e);
+            e.printStackTrace();
         }
 
 
@@ -189,3 +251,33 @@ public class RecordDAO extends AnimeDAO {
     }
 
 }
+//while (!allBlocksRead) {
+//        fileToWrite = caminhos;
+//        for (int i = 0; i < caminhos; i++) {
+//        if (canRead[i]) {
+//        records[i] = getRecord(files[i]);
+//        }
+//        }
+//        minRecord = records[0];
+//        for (int i = 0; i < caminhos; i++) {
+//        if (canRead[i] && minRecord.getId() > records[i].getId()) {
+//        minRecord = records[i];
+//        posLido = i;
+//        }
+//        }
+//        writeAnimeBytes(minRecord, files[fileToWrite], false);
+//        filePos[posLido]++;
+//        int countRead = 0;
+//        for (int i = 0; i < caminhos; i++) {
+//        if (filePos[i] == tamBloco) {
+//        canRead[i] = false;
+//        }
+//        }
+//        for (int i  = 0; i < caminhos; i++) {
+//        if (!canRead[i]) {
+//        countRead++;
+//        }
+//        }
+//        if (countRead == caminhos) {
+//        allBlocksRead = true;
+//        }

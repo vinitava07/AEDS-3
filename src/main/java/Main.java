@@ -18,7 +18,9 @@ public class Main {
 
         recordDAO.intercalacaoBalanceada(2, 4);
 
-//        AnimeDAO animeDAO = new AnimeDAO("f2.bin");
+//        AnimeDAO animeDAO = new AnimeDAO("f0.bin");
+//        animeDAO.printAllAnime(false);
+//        animeDAO = new AnimeDAO("f1.bin");
 //        animeDAO.printAllAnime(false);
 //        arq.csvToByte();
 
