@@ -12,7 +12,7 @@ import model.Arquivo;
 public class Main {
     public static void main(String[] args) throws Exception {
         AnimeDAO arq = new AnimeDAO("../resources/ListaAnime.csv", "../resources/animeBin.bin");
-        Timestamp ts = new Timestamp(0);
+//        Timestamp ts = new Timestamp(0);
         Arquivo arquivo = new Arquivo("../resources/ListaAnime.csv", "../resources/animeBin.bin");
         RecordDAO recordDAO = new RecordDAO(arquivo);
 
@@ -20,6 +20,8 @@ public class Main {
 
 //        AnimeDAO animeDAO = new AnimeDAO("f0.bin");
 //        animeDAO.printAllAnime(false);
+//        System.out.println();
+//        System.out.println();
 //        animeDAO = new AnimeDAO("f1.bin");
 //        animeDAO.printAllAnime(false);
 //        arq.csvToByte();

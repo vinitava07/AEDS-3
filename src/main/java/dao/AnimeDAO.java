@@ -94,7 +94,6 @@ public class AnimeDAO {
             raf.writeLong(r.getAnime().release_year.getTime());
         } else {
             if (r.getSize() == 0) { // if the record only has a anime and no more informations is a new record to be Add
-
                 try {
                     raf.seek(0);// set the file pointer to pos 0
                     lastId = raf.readInt() + 1;
@@ -107,7 +106,7 @@ public class AnimeDAO {
                 }
                 r.setId(lastId);
             }
-            raf.seek(raf.length());
+                raf.seek(raf.length());
 
             /**
              * the gravestone is the most significant bit of the most significant byte of
