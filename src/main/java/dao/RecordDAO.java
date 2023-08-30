@@ -5,10 +5,8 @@ import model.Record;
 import model.Tape;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 
 public class RecordDAO extends AnimeDAO {
@@ -42,8 +40,10 @@ public class RecordDAO extends AnimeDAO {
         try {
             byte[] byteArray = new byte[4];
             raf.read(byteArray, 0, 4);
+
             validRecord = !isValidRecord(byteArray[0]);//the oposite of valid record
-            recordLength = getRecordLength(byteArray, validRecord);
+            recordLength = getRecordLength(byteArray, !validRecord);// A INVERSAO DA INVERSÃO OLHAR ISSO DEPOIS
+
             animeID = raf.readInt();
             r.setSize(recordLength);
             r.setGraveyard(validRecord);
@@ -100,7 +100,7 @@ public class RecordDAO extends AnimeDAO {
 
     private void writeDirectRecordBytes(Record r, RandomAccessFile raf) {
         try {
-            System.out.println(r.getAnime());
+//            System.out.println(r.getAnime());
             raf.writeInt(r.getSize()); // this 4 bytes contains the record length and the gravestone
             raf.writeInt(r.getId());
             raf.writeUTF(r.getAnime().name);
@@ -133,9 +133,8 @@ public class RecordDAO extends AnimeDAO {
     private void intercalation(String[] fileNames, int caminhos, int bloco) {
 
         try {
-//            ArrayList<Record> recordArrayList = new ArrayList<>();
             Record minRecord = new Record();
-            File[] arquivos = new File[caminhos*2];
+            File[] arquivos = new File[caminhos * 2];
             for (int i = 0; i < caminhos * 2; i++) {
                 arquivos[i] = new File(fileNames[i]);
             }
@@ -158,17 +157,21 @@ public class RecordDAO extends AnimeDAO {
             int tamBloco = bloco;
             boolean caminhoUltimos = true;
             RandomAccessFile[] files = new RandomAccessFile[caminhos * 2];
+            int fileToBeRewriten = 0;
             int contador = 0;
-            int contador2 = 0;
 //            (this.qtdRegistros / tamBloco)
-//            tamBloco < this.qtdRegistros)
-            while (contador2 < 2) {
+//            )
+            while (tamBloco < this.qtdRegistros) {
                 for (int i = 0; i < caminhos * 2; i++) {
                     files[i] = new RandomAccessFile(fileNames[i], "rw");
                 }
                 contador = 0;
-                while (contador < qtdRegistros / (tamBloco * caminhos)) {
+                System.out.println("AAAAAAAAAA : " + 1);
+                while (contador < Math.ceil(((float) qtdRegistros / (tamBloco * caminhos)))) {
+                    System.out.println("ftoCOMEÇOW0: " + fileToWrite);
+                    System.out.println("ftoCOMEÇOR0: " + fileToRead);
                     while (allBlocksRead == false) {
+
                         if (firstIteration) {
                             for (int i = 0; i < caminhos; i++) {
                                 if (files[fileToRead + i].getFilePointer() == files[fileToRead + i].length()) {
@@ -179,11 +182,11 @@ public class RecordDAO extends AnimeDAO {
                             }
                             firstIteration = false;
                         } else {
-                            if (files[posLido].getFilePointer() == files[posLido].length()) {
+                            if (files[fileToRead + posLido].getFilePointer() == files[fileToRead + posLido].length()) {
                                 tape[posLido].canRead = false;
                             }
                             if (tape[posLido].canRead) {
-                                tape[posLido].record = getRecord(files[posLido]);
+                                tape[posLido].record = getRecord(files[fileToRead + posLido]);
                             }
                         }
 
@@ -196,22 +199,23 @@ public class RecordDAO extends AnimeDAO {
                                 minRecord = null;
                             }
                         }
-                        System.out.println(minRecord.getId());
-                        if (minRecord != null && minRecord.getAnime() != null ) {
+                        if (minRecord != null && minRecord.getAnime() != null) {
                             for (int i = 0; i < caminhos; i++) {
                                 if (tape[i].canRead && tape[i].record.getId() <= minRecord.getId()) {
                                     minRecord = tape[i].record;
                                     posLido = i;
                                 }
                             }
+                            System.out.println("id: " + minRecord.getId());
+
 
                             writeDirectRecordBytes(minRecord, files[fileToWrite]);
+                            tape[posLido].filePointer++;
+                            if (tape[posLido].filePointer == tamBloco) {
+                                tape[posLido].canRead = false;
+                            }
                         }
 
-                        tape[posLido].filePointer++;
-                        if (tape[posLido].filePointer == tamBloco) {
-                            tape[posLido].canRead = false;
-                        }
                         int countCantRead = 0;
                         for (int i = 0; i < caminhos; i++) {
                             if (tape[i].canRead == false) {
@@ -230,8 +234,8 @@ public class RecordDAO extends AnimeDAO {
                     firstIteration = true;
                     allBlocksRead = false;
 
-                    System.out.println("ftoW0: " + fileToWrite);
-                    System.out.println("ftoR0: " + fileToRead);
+                    System.out.println("ftoW: " + (fileToWrite));
+                    fileToBeRewriten = fileToWrite;
                     contadorFile = (contadorFile + 1) % caminhos;
                     if (caminhoUltimos) {
                         fileToWrite = fileArray2[contadorFile];
@@ -241,46 +245,58 @@ public class RecordDAO extends AnimeDAO {
                         fileToRead = caminhos;
 
                     }
+//                    System.out.println("ftoW0: " + fileToWrite);
+//                    System.out.println("ftoR0: " + fileToRead);
 //                    System.out.println("ftoR: " + fileToRead);
                     contador++;
                 }// FAZ A INTERCALAÇÃO N VEZES
-                System.err.println("contador: " + contador);
+//                System.out.println("ACABOUUUUUU");
+//                System.err.println("contador: " + contador);
                 tamBloco = tamBloco * caminhos;
                 contadorFile = 0;
 
                 for (int i = 0; i < caminhos * 2; i++) {
                     files[i].close();
+
                 }
 
                 caminhoUltimos = !caminhoUltimos;
                 if (caminhoUltimos) {
                     fileToWrite = fileArray2[contadorFile];
 //                    System.out.println("ftoW: " + fileToWrite);
-//                    arquivos[fileToWrite].delete();
+                    arquivos[fileToWrite].delete();
                     fileToRead = 0;
-//                    arquivos[fileToWrite + 1].delete();
+                    arquivos[fileToWrite + 1].delete();
+//                    System.out.println("ftoW: " + (fileToWrite + 1));
+//                    System.out.println("ftoW: " + (fileToWrite));
 
                 } else {
+//                    System.out.println("ftoW: " + (fileToWrite - 1));
                     fileToWrite = fileArray[contadorFile];
 //                    System.out.println("ftoW: " + fileToWrite);
-//                    arquivos[fileToWrite].delete();
+                    arquivos[fileToWrite].delete();
                     fileToRead = caminhos;
-//                    arquivos[fileToWrite + 1].delete();
-//                    System.out.println("ftoW: " + (fileToWrite + 1));
-
-
+                    arquivos[fileToWrite + 1].delete();
                 }
 
-                contador2++;
+
 //                tamBloco = qtdRegistros;
 //                contadorFile = 1;
 
 
-
             }// ACABOU A INTERCALAÇÃO
 
+            System.out.println(fileToBeRewriten);
             System.out.println("ftoW FINAL: " + fileToWrite);
-
+            RandomAccessFile raf = new RandomAccessFile("intercalado.bin", "rw");
+            String finalFile = "f" + fileToBeRewriten + ".bin";
+            RandomAccessFile raf2 = new RandomAccessFile(finalFile, "rw");
+            Record finalRecord = new Record();
+            for (int i = 0; i < qtdRegistros; i++) {
+                finalRecord = getRecord(raf2);
+                finalRecord.setSize(0);
+                writeAnimeBytes(finalRecord, raf, false);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

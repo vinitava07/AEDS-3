@@ -106,7 +106,7 @@ public class AnimeDAO {
                 }
                 r.setId(lastId);
             }
-                raf.seek(raf.length());
+            raf.seek(raf.length());
 
             /**
              * the gravestone is the most significant bit of the most significant byte of
@@ -149,15 +149,17 @@ public class AnimeDAO {
             byte[] byteArray = new byte[4];
             raf.seek(0);
             //lastId = raf.readInt();
-            System.out.println("Ultimo id: " + lastId);
             for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
                 raf.read(byteArray, 0, 4);
                 validRecord = isValidRecord(byteArray[0]);
                 recordLength = getRecordLength(byteArray, validRecord);
+                System.out.println("len: " + recordLength);
                 long filePointer = raf.getFilePointer();
+                System.out.println("id: " + raf.readInt());
                 if (validRecord) {
-                    raf.seek(filePointer + 4); // ignores the id of the record
+//                    raf.seek(filePointer + 4); // ignores the id of the record
                     Anime anime = getAnime(raf);
+                    System.out.println(anime.name);
                     anime.printAttributes();
                     raf.seek(filePointer + recordLength);
                 } else {
@@ -167,6 +169,7 @@ public class AnimeDAO {
             raf.close();
         } catch (Exception e) {
             System.err.println(e.getLocalizedMessage());
+            e.printStackTrace();
         }
 
     }
@@ -198,6 +201,7 @@ public class AnimeDAO {
             raf.close();
         } catch (Exception e) {
             System.err.println(e.getLocalizedMessage());
+            e.printStackTrace();
         }
 
     }
