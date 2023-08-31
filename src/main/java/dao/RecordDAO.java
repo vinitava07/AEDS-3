@@ -226,7 +226,10 @@ public class RecordDAO extends AnimeDAO {
                             allBlocksRead = true;
                         }
 
-                    }// INTERCALA OS BLOCOS
+                    }/**FIM DE "while (allBlocksRead == false)"
+                       *INTERCALA OS BLOCOS */
+
+
                     for (int i = 0; i < caminhos; i++) {
                         tape[i].canRead = true;
                         tape[i].filePointer = 0;
@@ -249,7 +252,9 @@ public class RecordDAO extends AnimeDAO {
 //                    System.out.println("ftoR0: " + fileToRead);
 //                    System.out.println("ftoR: " + fileToRead);
                     contador++;
-                }// FAZ A INTERCALAÇÃO N VEZES
+                }/**FIM DE "while (contador < Math.ceil(((float) qtdRegistros / (tamBloco * caminhos))))"
+                   *FAZ A INTERCALAÇÃO N VEZES */
+
 //                System.out.println("ACABOUUUUUU");
 //                System.err.println("contador: " + contador);
                 tamBloco = tamBloco * caminhos;
@@ -284,11 +289,12 @@ public class RecordDAO extends AnimeDAO {
 //                contadorFile = 1;
 
 
-            }// ACABOU A INTERCALAÇÃO
+            }/**FIM DO "while (tamBloco < this.qtdRegistros)"
+               *ACABOU A INTERCALAÇÃO */
 
             System.out.println(fileToBeRewriten);
             System.out.println("ftoW FINAL: " + fileToWrite);
-            RandomAccessFile raf = new RandomAccessFile("intercalado.bin", "rw");
+            RandomAccessFile raf = new RandomAccessFile("../resources/intercaladoComum.bin", "rw");
             String finalFile = "f" + fileToBeRewriten + ".bin";
             RandomAccessFile raf2 = new RandomAccessFile(finalFile, "rw");
             Record finalRecord = new Record();
@@ -323,7 +329,8 @@ public class RecordDAO extends AnimeDAO {
             sortAndInsert(raf, fileNames, caminhos, bloco);
             intercalation(fileNames, caminhos, bloco);
         } catch (Exception e) {
-            System.out.println("Erro intercalacao Balanceada");
+            System.err.println("Erro intercalacao Balanceada");
+            e.printStackTrace();
         }
 //
 //
