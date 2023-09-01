@@ -1,21 +1,21 @@
 package model;
 
 public class Arquivo {
-    public String nameCsv;
-    public String nameBin;
+    public String mainFile;
+    public String auxFile;
 
     Arquivo() {
-        this.nameCsv = "";
-        this.nameBin = "";
+        this.auxFile = "";
+        this.mainFile = "";
     }
 
-    public Arquivo(String csvName, String binName) {
-        this.nameCsv = csvName;
-        this.nameBin = binName;
+    public Arquivo(String mainFile, String auxFile) {
+        this.mainFile = mainFile;
+        this.auxFile = auxFile;
     }
 
-    public Arquivo(String binName) {
-        this.nameBin = binName;
-        this.nameCsv = "";
+    public Arquivo(String mainFile) {
+        this.mainFile = mainFile;
+        this.auxFile = "";
     }
 }

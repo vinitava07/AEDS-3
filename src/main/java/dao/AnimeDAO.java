@@ -37,8 +37,8 @@ public class AnimeDAO {
     }
 
     public void csvToByte() {
-        File csv = new File(arquivo.nameCsv);
-        File bin = new File(arquivo.nameBin);
+        File csv = new File(arquivo.auxFile);
+        File bin = new File(arquivo.mainFile);
         String animeText;
         int contador = 0;
         Anime anime;
@@ -132,7 +132,7 @@ public class AnimeDAO {
     }
 
     public void createAnime(Anime anime) throws Exception {
-        File file = new File(this.arquivo.nameBin);
+        File file = new File(this.arquivo.mainFile);
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         Record r = new Record();
         r.setAnime(anime);
@@ -141,7 +141,7 @@ public class AnimeDAO {
     }
 
     public void printAllAnime(boolean lastID) {
-        File file = new File(this.arquivo.nameBin);
+        File file = new File(this.arquivo.mainFile);
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             int lastId = 0;
             int recordLength;
@@ -175,7 +175,7 @@ public class AnimeDAO {
     }
 
     public void printAllAnime() {
-        File file = new File(this.arquivo.nameBin);
+        File file = new File(this.arquivo.mainFile);
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             int lastId = 0;
             int recordLength;
@@ -240,7 +240,7 @@ public class AnimeDAO {
         boolean validRecord;
         byte[] byteArray = new byte[4];
         int animeID;
-        try (RandomAccessFile raf = new RandomAccessFile(arquivo.nameBin, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
 
             if (raf.readInt() < id) {
                 System.out.println("ID maior do que os cadastrados!");
@@ -281,7 +281,7 @@ public class AnimeDAO {
 
         Anime deletedRecord = null;
 
-        try (RandomAccessFile raf = new RandomAccessFile(arquivo.nameBin, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
             byte[] byteArray = new byte[4];
             boolean validRecord;
             int animeID;
@@ -370,7 +370,7 @@ public class AnimeDAO {
         Record r = new Record();
         long filePointer;
         r.setAnime(a);
-        try (RandomAccessFile raf = new RandomAccessFile(arquivo.nameBin, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
             if (raf.readInt() < id) {
                 System.out.println("ID maior do que os cadastrados!");
                 // the id search key is grater than the last recorded id
