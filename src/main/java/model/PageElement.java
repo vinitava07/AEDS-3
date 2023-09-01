@@ -9,6 +9,14 @@ public class PageElement {
         this.pointer = pointer;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setPointer(long pointer) {
+        this.pointer = pointer;
+    }
+
     public int getId() {
         return id;
     }
