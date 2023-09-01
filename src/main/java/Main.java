@@ -14,6 +14,6 @@ public class Main {
     public static void main(String[] args) throws Exception {
 //        AnimeDAO arq = new AnimeDAO("../resources/ListaAnime.csv", "../resources/animeBin.bin");
 
-        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin" , 5);
+        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin" , 8);
     }
 }
