@@ -54,7 +54,7 @@ public class AnimeDAO {
 
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-            while (contador < 32) {
+            while (contador < 400) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 r.setAnime(anime);
@@ -70,7 +70,7 @@ public class AnimeDAO {
 
         } catch (Exception e) {
 
-            // TODO: handle exception
+            e.printStackTrace();
         }
     }
 
@@ -200,7 +200,7 @@ public class AnimeDAO {
             }
             raf.close();
         } catch (Exception e) {
-            System.err.println(e.getLocalizedMessage());
+
             e.printStackTrace();
         }
 
@@ -264,7 +264,7 @@ public class AnimeDAO {
             }
             raf.close();
         } catch (Exception e) {
-            // TODO: handle exception
+            e.printStackTrace();
         }
 
         if (!found) {
@@ -319,7 +319,7 @@ public class AnimeDAO {
             }
             raf.close();
         } catch (Exception e) {
-            // TODO: handle exception
+            e.printStackTrace();
         }
 
         return deletedRecord;
@@ -412,9 +412,39 @@ public class AnimeDAO {
             }
             raf.close();
         } catch (Exception e) {
-            // TODO: handle exception
+            e.printStackTrace();
         }
 
     }
 
+    public void buildIndexFile() {
+        BPlusTreeDAO indexFile = new BPlusTreeDAO("../resources/indexB.bin",8);
+        File file = new File(this.arquivo.mainFile);
+        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+            int lastId = 0;
+            int recordLength;
+            boolean validRecord;
+            byte[] byteArray = new byte[4];
+            raf.seek(0);
+            lastId = raf.readInt();
+            for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
+                raf.read(byteArray, 0, 4);
+                validRecord = isValidRecord(byteArray[0]);
+                recordLength = getRecordLength(byteArray, validRecord);
+                long filePointer = raf.getFilePointer();
+                if (validRecord) {
+                    int id = raf.readInt();
+                    long dataFilePosition = raf.getFilePointer();
+                    indexFile.insertElement(id,dataFilePosition);
+                    raf.seek(filePointer + recordLength);
+                } else {
+                    raf.seek(filePointer + recordLength);
+                }
+            }
+            raf.close();
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+    }
 }

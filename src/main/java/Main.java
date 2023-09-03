@@ -13,13 +13,28 @@ import model.BPlusTreePage;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-//        AnimeDAO arq = new AnimeDAO("../resources/ListaAnime.csv", "../resources/animeBin.bin");
-        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin");
+        AnimeDAO arq = new AnimeDAO("../resources/ListaAnime.csv", "../resources/animeBin.bin");
+//        arq.csvToByte();
+//        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin",4);
+//        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin");
+//        index.printTree   ();
 //        BPlusTreePage bPlusTreePage = new BPlusTreePage(3);
 //        index.writeNewPage(new RandomAccessFile("../resources/indexB.bin", "rw"), bPlusTreePage);
-        index.insertElement(1,10);
-//        index.insertElement(2,11);
-//        index.insertElement(3,13);
+
+
+
+//        index.insertElement(30,300);
+//        index.insertElement(10,100);
+//        index.insertElement(20,200);
+//        index.insertElement(3,30);
+//        index.insertElement(15,150);
+//        index.insertElement(35,350);
+//        index.insertElement(25,250);
+//        index.insertElement(5,50);
+//        index.insertElement(11,110);
+//        index.insertElement(12,120);
+//        index.insertElement(13,130);
+//        index.insertElement(16,160);
 
     }
 }
