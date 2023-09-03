@@ -87,13 +87,13 @@ public class BPlusTreeDAO {
                 overWritePage(raf , raf.getFilePointer() , page);
             } else {
                 long currentPage = raf.getFilePointer();
-                raf.seek(whereToGo(page , element));
+                raf.seek(whereToGo(page , element.getId()));
                 if(getPage(raf).numElements == (this.bOrder - 1)) {
                     // TODO : ANOTAÇÃO NA FOLHA
                     PageElement promoted = splitPage(raf);
                     page.insertPromoted(promoted , getPromotedRightPointer(raf));
                     overWritePage(raf , currentPage , page);
-                    raf.seek(whereToGo(page , element));
+                    raf.seek(whereToGo(page , element.getId()));
                 }
                 insertElement(raf , element);
             }
@@ -124,15 +124,15 @@ public class BPlusTreeDAO {
         return page;
     }
 
-    private long whereToGo(BPlusTreePage from , PageElement element) {
+    private long whereToGo(BPlusTreePage from , int id) {
         long whereTo = from.pointers[from.numElements]; // considers element's id is greater than any page element
         boolean found = false;
         for (int i = 0; (i < from.numElements && !found); i++) {
-            if(from.elements[i].getId() == element.getId()) {
+            if(from.elements[i].getId() == id) {
                 whereTo = from.elements[i].getPointer();
                 found = true;
             } else {
-                if(from.elements[i].getId() > element.getId()) {
+                if(from.elements[i].getId() > id) {
                     whereTo = from.pointers[i];
                     found = true;
                 }
@@ -297,6 +297,61 @@ public class BPlusTreeDAO {
             e.printStackTrace();
         }
         return pointer;
+    }
+
+    public long search(int id) {
+        long result = -1;
+        try (RandomAccessFile raf = new RandomAccessFile(this.indexFile.mainFile , "rw")) {
+            raf.seek(this.rootPage);
+            BPlusTreePage page = getPage(raf);
+            boolean found = false;
+            for (int i = 0; (i < page.numElements && !found); i++) {
+                if(page.elements[i].getId() == id) {
+                    if(page.isLeaf) {
+                        result = page.elements[i].getPointer();
+                        found = true;
+                    } else {
+                        raf.seek(page.elements[i].getPointer());
+                        result = search(raf , id);
+                    }
+                }
+            }
+            if(!found) {
+                raf.seek(whereToGo(page , id));
+                result = search(raf , id);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    private long search(RandomAccessFile raf , int id) {
+        long result = -1;
+        try {
+            BPlusTreePage page = getPage(raf);
+            boolean found = false;
+            for (int i = 0; (i < page.numElements && !found); i++) {
+                if(page.elements[i].getId() == id) {
+                    if(page.isLeaf) {
+                        result = page.elements[i].getPointer();
+                        found = true;
+                    } else {
+                        raf.seek(page.elements[i].getPointer());
+                        result = search(raf , id);
+                    }
+                }
+            }
+            if(!found) {
+                raf.seek(whereToGo(page , id));
+                result = search(raf , id);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result;
     }
 
     public void printTree() {

@@ -21,9 +21,9 @@ public class AnimeDAO {
     Anime a;
     Arquivo arquivo;
 
-    public AnimeDAO(String csv, String bin) {
+    public AnimeDAO(String bin, String csv) {
         a = new Anime();
-        arquivo = new Arquivo(csv, bin);
+        arquivo = new Arquivo(bin , csv);
     }
 
     public AnimeDAO(String bin) {
@@ -446,5 +446,19 @@ public class AnimeDAO {
 
             e.printStackTrace();
         }
+    }
+
+    public Anime indexSearch(int id , BPlusTreeDAO indexFile) {
+        long pointer = indexFile.search(id);
+        Anime result = null;
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile , "r")){
+            if(pointer > 0) {
+                raf.seek(pointer);
+                result = getAnime(raf);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 }
