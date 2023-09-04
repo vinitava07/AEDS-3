@@ -14,10 +14,14 @@ import model.BPlusTreePage;
 public class Main {
     public static void main(String[] args) throws Exception {
         AnimeDAO arq = new AnimeDAO("../resources/animeBin.bin", "../resources/ListaAnime.csv");
+//        arq.csvToByte();
 //        arq.buildIndexFile();
         BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin");
-        Anime anime = arq.indexSearch(310 , index);
-        if(anime != null) anime.printAttributes();
+//        arq.buildIndexFile(index);
+        index.deleteElement(1);
+
+//        Anime anime = arq.indexSearch(310 , index);
+//        if(anime != null) anime.printAttributes();
 //        arq.csvToByte();
 //        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin",4);
 //        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin");
