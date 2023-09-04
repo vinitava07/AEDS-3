@@ -39,8 +39,11 @@ public class BPlusTreeDAO {
     public BPlusTreeDAO(String indexFileName, int bOrder) {
         try {
             if (bOrder < 3) throw new Exception("Não é possível uma árvore B de ordem menor que 3!");
-
-            // TODO : check if the file already exists and, if so, ask if the user wants to overwrite and create a new one
+            File file = new File(indexFileName);
+            if(file.exists()) {
+                file.delete();
+                System.out.println("Arquivo deletado!");
+            }
 
             indexFile = new Arquivo(indexFileName);
             this.bOrder = bOrder;

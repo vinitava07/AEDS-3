@@ -54,7 +54,7 @@ public class BPlusTreePage {
         return elementsLength + pointersLength + 4 + 1;// + 4 for the number of elements in the beginning + 1 boolean
     }
 
-    public void insertPromoted(PageElement promoted , long promotedRigthPointer) {
+    public void insertPromoted(PageElement promoted , long promotedRightPointer) {
         ArrayList<PageElement> elementsList = new ArrayList<>();
         for (int i = 0; i < this.numElements; i++) {
             elementsList.add(this.elements[i]);
@@ -72,7 +72,7 @@ public class BPlusTreePage {
             this.elements[j] = this.elements[j - 1];
         }
         this.elements[i] = promoted;
-        this.pointers[i+1] = promotedRigthPointer;
+        this.pointers[i+1] = promotedRightPointer;
         this.numElements++;
     }
 
