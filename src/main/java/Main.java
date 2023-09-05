@@ -15,10 +15,12 @@ public class Main {
     public static void main(String[] args) throws Exception {
         AnimeDAO arq = new AnimeDAO("../resources/animeBin.bin", "../resources/ListaAnime.csv");
 //        arq.csvToByte();
-//        arq.buildIndexFile();
         BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin");
 //        arq.buildIndexFile(index);
-        index.deleteElement(1);
+        for (int i = 0; i < 1; i++) {
+            index.deleteElement(i);
+
+        }
 
 //        Anime anime = arq.indexSearch(310 , index);
 //        if(anime != null) anime.printAttributes();
@@ -28,7 +30,6 @@ public class Main {
 //        index.printTree   ();
 //        BPlusTreePage bPlusTreePage = new BPlusTreePage(3);
 //        index.writeNewPage(new RandomAccessFile("../resources/indexB.bin", "rw"), bPlusTreePage);
-
 
 
 //        index.insertElement(30,300);

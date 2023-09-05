@@ -23,7 +23,7 @@ public class AnimeDAO {
 
     public AnimeDAO(String bin, String csv) {
         a = new Anime();
-        arquivo = new Arquivo(bin , csv);
+        arquivo = new Arquivo(bin, csv);
     }
 
     public AnimeDAO(String bin) {
@@ -54,7 +54,8 @@ public class AnimeDAO {
 
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-            while ((animeText = csvFile.readLine()) != null) {
+            while (contador < 30) {
+                animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 r.setAnime(anime);
                 // System.out.println(animeText);
@@ -433,7 +434,7 @@ public class AnimeDAO {
                 if (validRecord) {
                     int id = raf.readInt();
                     long dataFilePosition = raf.getFilePointer();
-                    indexFile.insertElement(id,dataFilePosition);
+                    indexFile.insertElement(id, dataFilePosition);
                     raf.seek(filePointer + recordLength);
 //                    System.out.println(id);
                 } else {
@@ -448,11 +449,11 @@ public class AnimeDAO {
         }
     }
 
-    public Anime indexSearch(int id , BPlusTreeDAO indexFile) {
+    public Anime indexSearch(int id, BPlusTreeDAO indexFile) {
         long pointer = indexFile.search(id);
         Anime result = null;
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile , "r")){
-            if(pointer > 0) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
+            if (pointer > 0) {
                 raf.seek(pointer);
                 result = getAnime(raf);
             }
