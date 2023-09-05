@@ -54,7 +54,7 @@ public class BPlusTreePage {
         return elementsLength + pointersLength + 4 + 1;// + 4 for the number of elements in the beginning + 1 boolean
     }
 
-    public void insertPromoted(PageElement promoted , long promotedRightPointer) {
+    public void insertPromoted(PageElement promoted, long promotedRightPointer) {
         ArrayList<PageElement> elementsList = new ArrayList<>();
         for (int i = 0; i < this.numElements; i++) {
             elementsList.add(this.elements[i]);
@@ -63,8 +63,8 @@ public class BPlusTreePage {
         elementsList.sort(Comparator.comparingInt(PageElement::getId));
         int i = 0;
         boolean flag = false;
-        while(!flag) {
-            if(elementsList.get(i).getId() == promoted.getId()) flag = true;
+        while (!flag) {
+            if (elementsList.get(i).getId() == promoted.getId()) flag = true;
             else i++;
         }
         for (int j = this.numElements; j > i; j--) { // moves everything 1 spot to the right
@@ -72,13 +72,14 @@ public class BPlusTreePage {
             this.elements[j] = this.elements[j - 1];
         }
         this.elements[i] = promoted;
-        this.pointers[i+1] = promotedRightPointer;
+        this.pointers[i + 1] = promotedRightPointer;
         this.numElements++;
     }
 
     public void printPage() {
         StringBuilder strBuilder = new StringBuilder();
         strBuilder.append("leaf: " + this.isLeaf);
+        strBuilder.append(" elements: " + this.numElements);
         strBuilder.append(" | " + this.pointers[0]);
         for (int i = 0; i < this.numElements; i++) {
             strBuilder.append(" | " + this.elements[i].getId() + " - " + this.elements[i].getPointer());

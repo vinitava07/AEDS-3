@@ -54,7 +54,7 @@ public class AnimeDAO {
 
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-            while (contador < 30) {
+            while (contador < 10) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 r.setAnime(anime);
@@ -417,7 +417,16 @@ public class AnimeDAO {
 
     }
 
-    public void buildIndexFile(BPlusTreeDAO indexFile) {
+    public void buildIndexFile(BPlusTreeDAO indexdasda) {
+        File index = new File("../resources/indexB.bin");
+        if (index.exists()) {
+            index.delete();
+
+        }
+        BPlusTreeDAO indexFile = new BPlusTreeDAO("../resources/indexB.bin",8);
+//        BPlusTreeDAO bPlusTreeDAO = new BPlusTreeDAO("../resources/indexB.bin",8);
+
+
         File file = new File(this.arquivo.mainFile);
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             int lastId = 0;

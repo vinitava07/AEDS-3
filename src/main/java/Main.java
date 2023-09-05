@@ -15,14 +15,15 @@ public class Main {
     public static void main(String[] args) throws Exception {
         AnimeDAO arq = new AnimeDAO("../resources/animeBin.bin", "../resources/ListaAnime.csv");
 //        arq.csvToByte();
+//        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin",8);
         BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin");
 //        arq.buildIndexFile(index);
-        for (int i = 0; i < 1; i++) {
-            index.deleteElement(i);
+//            index.deleteElement(3);
+//        for (int i = 0; i < 30; i++) {
 
-        }
+//        }
 
-//        Anime anime = arq.indexSearch(310 , index);
+        Anime anime = arq.indexSearch(3 , index);
 //        if(anime != null) anime.printAttributes();
 //        arq.csvToByte();
 //        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin",4);
@@ -32,18 +33,6 @@ public class Main {
 //        index.writeNewPage(new RandomAccessFile("../resources/indexB.bin", "rw"), bPlusTreePage);
 
 
-//        index.insertElement(30,300);
-//        index.insertElement(10,100);
-//        index.insertElement(20,200);
-//        index.insertElement(3,30);
-//        index.insertElement(15,150);
-//        index.insertElement(35,350);
-//        index.insertElement(25,250);
-//        index.insertElement(5,50);
-//        index.insertElement(11,110);
-//        index.insertElement(12,120);
-//        index.insertElement(13,130);
-//        index.insertElement(16,160);
 
     }
 }
