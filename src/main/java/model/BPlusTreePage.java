@@ -79,8 +79,8 @@ public class BPlusTreePage {
     public void printPage() {
         StringBuilder strBuilder = new StringBuilder();
         strBuilder.append("leaf: " + this.isLeaf);
-        strBuilder.append(" elements: " + this.numElements);
-        strBuilder.append(" | " + this.pointers[0]);
+        strBuilder.append(" || elements: " + this.numElements);
+        strBuilder.append(" || " + this.pointers[0]);
         for (int i = 0; i < this.numElements; i++) {
             strBuilder.append(" | " + this.elements[i].getId() + " - " + this.elements[i].getPointer());
             strBuilder.append(" | " + this.pointers[i + 1]);

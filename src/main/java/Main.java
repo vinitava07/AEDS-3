@@ -18,12 +18,12 @@ public class Main {
 //        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin",8);
         BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin");
 //        arq.buildIndexFile(index);
-//            index.deleteElement(3);
+            index.deleteElement(3);
 //        for (int i = 0; i < 30; i++) {
 
 //        }
 
-        Anime anime = arq.indexSearch(3 , index);
+//        Anime anime = arq.indexSearch(3 , index);
 //        if(anime != null) anime.printAttributes();
 //        arq.csvToByte();
 //        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin",4);
