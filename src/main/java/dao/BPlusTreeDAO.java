@@ -22,7 +22,7 @@ public class BPlusTreeDAO {
     private long rootPage;
     int minElements;
 
-    enum operation {
+    public enum operation {
         cantRemove, cantShift, cantConcede, canRemove, canShift, canConcede, success;
 
     }
@@ -32,7 +32,8 @@ public class BPlusTreeDAO {
     }
 
     public BPlusTreeDAO(String binFileName) {
-        this.minElements = (int) Math.ceil((((double) this.bOrder / 2) - 1));
+//        this.minElements = (int) Math.ceil((((double) bOrder / 2) - 1));
+//        System.out.println("min:" +bOrder);
         try {
             if (new File(binFileName).exists() == false)
                 throw new FileNotFoundException("The file: \"" + binFileName + "\" doesn't exist!");
@@ -48,7 +49,7 @@ public class BPlusTreeDAO {
     }
 
     public BPlusTreeDAO(String indexFileName, int bOrder) {
-        this.minElements = (int) Math.ceil((((double) this.bOrder / 2) - 1));
+
         try {
             if (bOrder < 3) throw new Exception("Não é possível uma árvore B de ordem menor que 3!");
             File file = new File(indexFileName);
@@ -76,19 +77,21 @@ public class BPlusTreeDAO {
         try (RandomAccessFile raf = new RandomAccessFile(this.indexFile.mainFile, "rw")) {
             raf.seek(this.rootPage);
             if (getPage(raf).numElements == (this.bOrder - 1)) {
+
                 splitRootPage(raf);
             }
             raf.seek(this.rootPage);
-            insertElement(raf, element);
+            insertElement(raf, element, -1);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void insertElement(RandomAccessFile raf, PageElement element) {
+    private void insertElement(RandomAccessFile raf, PageElement element, long nextPagePointer) {
         try {
             BPlusTreePage page = getPage(raf);
             if (page.isLeaf) {
+                long originalFP = raf.getFilePointer();
                 ArrayList<PageElement> elementsList = new ArrayList<>();
                 for (int i = 0; i < page.numElements; i++) {
                     elementsList.add(page.elements[i]);
@@ -99,18 +102,22 @@ public class BPlusTreeDAO {
                 for (int i = 0; i < page.numElements; i++) {
                     page.elements[i] = elementsList.get(i);
                 }
-                overWritePage(raf, raf.getFilePointer(), page);
+                overWritePage(raf, originalFP, page);
             } else {
                 long currentPage = raf.getFilePointer();
+                long nextPage = -1;
                 raf.seek(whereToGo(page, element.getId()));
                 if (getPage(raf).numElements == (this.bOrder - 1)) {
                     // TODO : ANOTAÇÃO NA FOLHA
                     PageElement promoted = splitPage(raf);
+//                    BPlusTreePage aux = getPage(raf);
                     page.insertPromoted(promoted, getPromotedRightPointer(raf));
                     overWritePage(raf, currentPage, page);
+//                    overWritePage(raf, raf.getFilePointer(), aux);
                     raf.seek(whereToGo(page, element.getId()));
+                    nextPage = raf.getFilePointer();
                 }
-                insertElement(raf, element);
+                insertElement(raf, element, nextPage);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -216,6 +223,7 @@ public class BPlusTreeDAO {
                 newRoot.pointers[0] = this.rootPage;
                 newRoot.pointers[1] = writeNewPage(raf, rightPage);
                 page.pointers[this.bOrder - 1] = newRoot.pointers[1];
+//                page.pointers[this.bOrder - 1] = 34123123;
                 overWritePage(raf, this.rootPage, page);
                 PageElement promoted = new PageElement(page.elements[mid].getId(), newRoot.pointers[1]);
                 newRoot.elements[0] = promoted;
@@ -235,7 +243,6 @@ public class BPlusTreeDAO {
                     rightPage.pointers[i] = page.pointers[mid + i + 1];
                 }
                 rightPage.pointers[newPageElements] = page.pointers[mid + 1 + newPageElements];
-
                 page.setNumElements(mid);
                 overWritePage(raf, this.rootPage, page);
                 rightPage.setNumElements(newPageElements);
@@ -306,7 +313,7 @@ public class BPlusTreeDAO {
         try {
             BPlusTreePage page = getPage(raf);
             pointer = page.pointers[this.bOrder - 1];
-            page.pointers[this.bOrder - 1] = -1;
+            if(page.isLeaf == false) page.pointers[this.bOrder - 1] = -1;
             overWritePage(raf, raf.getFilePointer(), page);
         } catch (Exception e) {
             e.printStackTrace();
@@ -414,16 +421,55 @@ public class BPlusTreeDAO {
         }
     }
 
+    public void printAllPages() {
+        try (RandomAccessFile raf = new RandomAccessFile(this.indexFile.mainFile, "rw")) {
+            raf.seek(this.rootPage);
+            BPlusTreePage page = getPage(raf);
+            printAllPages(raf, page, this.rootPage);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void printAllPages(RandomAccessFile raf, BPlusTreePage page, long returnPage) {
+        try {
+            int i = 0;
+            BPlusTreePage aux;
+            page.printPage();
+            if (page.isLeaf) {
+                raf.seek(returnPage);
+                return;
+            }
+            long pos = raf.getFilePointer();
+            for (int j = 0; j < page.numElements + 1; j++) {
+                if (page.pointers[j] != -1) {
+                    System.out.println();
+                    raf.seek(page.pointers[j]);
+                    System.out.println("POS: " + raf.getFilePointer());
+                    aux = getPage(raf);
+                    raf.seek(pos);
+                    printAllPages(raf, aux, pos);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private int deleteElement(RandomAccessFile raf, int id) {
         try {
-            boolean onlyLeaf = false;
-            long firstAppearence = getFirstAppearence(raf, id);
-            raf.seek(firstAppearence);
-            BPlusTreePage page = getPage(raf);
-            raf.seek(this.rootPage);
-            onlyLeaf = page.isLeaf;
-            printTree(raf);
-            System.out.println(firstAppearence);
+            this.minElements = (int) Math.ceil((((double) bOrder / 2) - 1));
+
+//            boolean onlyLeaf = false;
+//            long firstAppearence = getFirstAppearence(raf, id);
+//            raf.seek(firstAppearence);
+//            BPlusTreePage page = getPage(raf);
+//            raf.seek(this.rootPage);
+//            onlyLeaf = page.isLeaf;
+//            printTree(raf);
+//            System.out.println(firstAppearence);
+            deleteRecursion(raf, id, false);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -436,48 +482,92 @@ public class BPlusTreeDAO {
 
         try {
             BPlusTreePage currentPage = getPage(raf);
+            long currentPageFP = raf.getFilePointer();
             boolean found = false;
-            boolean nextPage = false;
+            boolean nextPage = true;
             long pagePointer;
             operation op;
             long nextPagePointer = currentPage.pointers[currentPage.numElements];
             int elementPosition = 0;
+            boolean loop = true;
 
-            for (int i = 0; i < currentPage.numElements && (!found || !nextPage); i++) {
+            for (int i = 0; i < currentPage.numElements && loop; i++) {
                 if (currentPage.elements[i].getId() == id) {
-                    found = true;
+                    if (currentPage.isLeaf) {
+                        found = true;
+                        loop = false;
+                    } else {
+                        nextPagePointer = currentPage.pointers[i + 1];
+                        loop = false;
+                    }
                     elementPosition = i;
                 } else if (currentPage.elements[i].getId() > id) {
-                    nextPage = true;
-                    nextPagePointer = currentPage.pointers[i];
+                    if (currentPage.isLeaf) {
+                        found = false;
+                        nextPage = false;
+                        loop = false;
+                    } else {
+                        nextPagePointer = currentPage.pointers[i];
+                        loop = false;
+                    }
+
                 }
             }
             if (found) {
+                System.out.println("achou FOUND = TRUE");
                 if (currentPage.isLeaf) {
+                    System.out.println("ACHOU NA FOLHA");
                     if (currentPage.numElements > minElements) {
-                        leftShiftPage(raf, elementPosition);
+                        System.out.println("A FOLHA PODE REMOVER");
+                        changeFirstOcurrence(raf, id);
+                        leftShiftPage(raf, elementPosition, false);
                         return operation.success;
                     } else {
+                        System.out.println("A FOLHA NAO PODE REMOVER");
                         return operation.cantRemove;
-                    }
-                } else {
 
+                    }
                 }
             } else if (nextPage) {
+                System.out.println("NEXT PAGE");
                 raf.seek(nextPagePointer);
                 op = deleteRecursion(raf, id, onlyLeaf);
+                raf.seek(currentPageFP);
+                System.out.println("SAIU DA RECURSIVIDADE");
+//                System.out.println("root: " + this.rootPage);
+                System.out.println("current: " + raf.getFilePointer());
+//                if ((currentPageFP != this.rootPage)) {
                 if (op == operation.cantRemove) {
+                    System.out.println("NAO PODE REMOVER, O QUE FAZER");
                     wichBrother wichConcede;
                     wichConcede = wichBrotherCanTake(raf, id);
                     if (wichConcede == wichBrother.left) {
+                        System.out.println("TAKE FROM LEFT");
                         takeFromLeft(raf, id);
+                        return operation.success;
                     } else if (wichConcede == wichBrother.right) {
+                        System.out.println("TAKE FROM RIGHT");
                         takeFromRight(raf, id);
+                        return operation.success;
                     } else {
-
+                        System.out.println("NÃO PODE PEGAR EMPRESTADO, FAZER MERGE");
+                        return operation.cantConcede;
+                        //FUDEU TEM QUE FAZER MERGE
                     }
-
                 }
+                else if (op == operation.cantConcede && currentPageFP == this.rootPage) {
+                    // FUDEU O MAXIMO POSSIVEL
+                }
+                else if (op == operation.cantConcede) {
+                    //VERIFICAR SHIFHT
+                    if (currentPage.numElements > minElements) {
+                        //shift e merge
+                    }
+                }
+
+//                }
+            } else {
+                System.out.println("não encontrado");
             }
 
 
@@ -489,63 +579,117 @@ public class BPlusTreeDAO {
         return operation.success;
     }
 
-    public void takeFromRight(RandomAccessFile raf, int id) {
+    public void takeFromRight(RandomAccessFile raf, int id) {// pega um elemento d afolha da direita e joga pra a esquerda
         try {
             long originalFP = raf.getFilePointer();
             BPlusTreePage fatherPage = getPage(raf);
-            BPlusTreePage leftBrother;
-
-            long leftBrotherPointer = -1;
+            BPlusTreePage rightBrother;
+            BPlusTreePage elementPage;
+            int pos = 0;
+            long elementPagePointer = -1;
+            long rightBrotherPointer = -1;
             boolean found = false;
-
+            long left;
             for (int i = 0; i < fatherPage.numElements && !found; i++) {
                 if (fatherPage.elements[i].getId() > id) {
-                    leftBrotherPointer = fatherPage.pointers[i];
+                    elementPagePointer = fatherPage.pointers[i];
+                    pos = i;
                     found = true;
                 }
             }
-            raf.seek(leftBrotherPointer);
-            leftBrother = getPage(raf);
+            raf.seek(elementPagePointer); // PEGA O IRMAO DA DIREITA
+            elementPage = getPage(raf);
+            rightBrotherPointer = elementPage.pointers[bOrder - 1];
+            raf.seek(rightBrotherPointer);
+            rightBrother = getPage(raf);
 
+            PageElement rightElement = rightBrother.elements[0];// PEGA O 1 ELEMENTO E O 2
+            PageElement secondRightElement = rightBrother.elements[1];
+
+            changeFirstOcurrence(raf, rightElement.getId()); //TROCA AS APARICOES DO 1 ELEMENTO
+
+            fatherPage.elements[pos] = secondRightElement;
+            fatherPage.elements[pos].setPointer(rightBrotherPointer);
+            overWritePage(raf, originalFP, fatherPage);// CONFIGURA A PAGINA DE PAI DA MANEIRA CERTA
+
+            int positionOnElementPage = 0;
+            for (int i = 0; i < elementPage.numElements; i++) {
+                if (elementPage.elements[i].getId() == id) {
+                    positionOnElementPage = i;
+                    break;
+                }
+            }
+            raf.seek(elementPagePointer);//DA UM SHIFT NA PAGINA QUE FOI REMOVIDO E REESCREVE ELA CERTO
+            changeFirstOcurrence(raf, id);
+            leftShiftPage(raf, positionOnElementPage, false);
+            elementPage = getPage(raf);
+            elementPage.elements[elementPage.numElements] = rightElement;
+            elementPage.numElements++;
+            overWritePage(raf, elementPagePointer, elementPage);
+
+//            raf.seek(this.rootPage);
+//            long firstApp = getFirstAppearence(raf, rightBrother.elements[0].getId());
+//            raf.seek(firstApp);
+//            BPlusTreePage firsAppPage = getPage(raf);
+//            for (int i = 0; i < firsAppPage.numElements; i++) {
+//                if (firsAppPage.elements[i].getId() == rightElement.getId()) {
+//                    firsAppPage.elements[i].setId(secondRightElement.getId());
+//                    firsAppPage.elements[i].setPointer(rightBrotherPointer);
+//                    overWritePage(raf, firstApp, firsAppPage);
+//                }
+//            }
+            raf.seek(rightBrotherPointer);
+            leftShiftPage(raf, 0, false);// DA UM SHIFT NA PAGINA QUE EMPRESTOU
             raf.seek(originalFP);
-
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
-// TODO: TERMINAR O TAKE FROMLEFT
+
     public void takeFromLeft(RandomAccessFile raf, int id) {
         try {
             long originalFP = raf.getFilePointer();
             BPlusTreePage fatherPage = getPage(raf);
             BPlusTreePage leftBrother;
+            BPlusTreePage focusPage;
             int pos = 0;
             long leftBrotherPointer = -1;
             boolean found = false;
 
             for (int i = 0; i < fatherPage.numElements && !found; i++) {
                 if (fatherPage.elements[i].getId() > id) {
-                    leftBrotherPointer = fatherPage.pointers[i];
                     pos = i;
                     found = true;
                 }
             }
-            raf.seek(leftBrotherPointer);
-            leftBrother = getPage(raf);
-            if (pos == 0) {
-                leftBrotherPointer = getLeftBrother(raf, leftBrother.elements[0].getId());
-                if (leftBrotherPointer == raf.getFilePointer()) {
-                    raf.seek(leftBrotherPointer);
-                    leftBrother = getPage(raf); //
-                }
+            if (pos == 0) {// se a pagina estiver entre uma divisao de paginas superior
+                raf.seek(getLeftBrother(raf, 0));
+                leftBrother = getPage(raf);
+            } else {
+                leftBrotherPointer = fatherPage.pointers[pos - 1];
+                raf.seek(leftBrotherPointer);
+                leftBrother = getPage(raf);
             }
-
+            int leftBrotherID = leftBrother.elements[leftBrother.numElements - 1].getId();
+            raf.seek(leftBrother.pointers[bOrder]);
+//            focusPage = getPage(raf);
+            raf.seek(this.rootPage);
+//            long firstAppearence = getFirstAppearence(raf, leftBrotherID);
+//            raf.seek(firstAppearence);
+//            BPlusTreePage firstAppearencePage = getPage(raf);
+//            if (firstAppearencePage.isLeaf) {
+            fatherPage.elements[fatherPage.numElements - 1].setId(leftBrotherID);
+            fatherPage.elements[fatherPage.numElements - 1].setPointer(leftBrother.pointers[bOrder]);
+            overWritePage(raf, originalFP, fatherPage);
+            raf.seek(leftBrother.pointers[bOrder]);
+            rightShiftPage(raf, leftBrother.elements[leftBrother.numElements - 1], leftBrother.pointers[leftBrother.numElements]);
+//            }
+            leftBrother.numElements--;
+            overWritePage(raf, leftBrotherPointer, leftBrother);
 
             raf.seek(originalFP);
-
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -554,65 +698,69 @@ public class BPlusTreeDAO {
     }
 
 
-//    private void deleteElement(RandomAccessFile raf, int id) {
-//        try {
-//
-//            long leafPage = getLeafPage(raf, id);
-//            long upperPage = getUpperPage(raf, id);
-//            long firstAppearence = getFirstAppearence(raf, id, upperPage);
-//            BPlusTreePage page;
-//            int minElements = (int) Math.ceil((((double) this.bOrder / 2) - 1));
-//            if (firstAppearence == leafPage) {
-//                System.out.println("aaaa");
-//                raf.seek(firstAppearence);
-//                page = getPage(raf);
-//                if (page.numElements - 1 >= minElements) { // APENAS NA FOLHA E ELA NAO FICA COM TAMANHO REDUZIDO
-//                    boolean found = false;
-//                    int elementToShift = 0;
-//                    for (int i = 0; i < page.numElements && !found; i++) {
-//                        if (page.elements[i].getId() == id) {
-//                            elementToShift = i;
-//                            found = true;
-//                        }
-//                    }
-////                    System.out.println("etf" + elementToShift);
-//                    leftShiftPage(raf, elementToShift);
-//                    System.out.println("REMOVIDO: " + id);
-//                    System.out.println(raf.getFilePointer());
-//                    printTree(raf);
-//
-//                } else {
-//                    raf.seek(upperPage);
-//                    int wichBrother;
-//                    wichBrother = wichBrotherCanTake(raf, id);
-//                    System.out.println(wichBrother);
-//                    if (wichBrother == 1) {
-//                        takeFromRight(raf, leafPage);
-//                    }
-//                    if (wichBrother == -1) {
-//
-//                    }
-//
-//                }
-//
-//
-//            }
-////            raf.seek(upperPage);
-//
-//
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+    private void rightShiftPage(RandomAccessFile raf, PageElement element, long pointer) {
+        try {
+            BPlusTreePage pageToShift = getPage(raf);
+            for (int i = 0; i < pageToShift.numElements; i++) {
+                pageToShift.elements[i + 1] = pageToShift.elements[i];
+                pageToShift.pointers[i + 1] = pageToShift.pointers[i];
+            }
+            pageToShift.pointers[0] = pointer;
+            pageToShift.elements[0] = element;
+            pageToShift.numElements++;
+            overWritePage(raf, raf.getFilePointer(), pageToShift);
 
-    private void leftShiftPage(RandomAccessFile raf, int elementToShift) {
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+
+
+    }
+
+    private void changeFirstOcurrence(RandomAccessFile raf, int id) {// change first occurences of a element for his next in the leave
+        try {
+            long originalFp = raf.getFilePointer();
+            BPlusTreePage currentPage = getPage(raf);
+            PageElement element = new PageElement(-1, -1);
+            raf.seek(rootPage);
+            long firstApp = getFirstAppearence(raf, id);
+            raf.seek(firstApp);
+            BPlusTreePage firstAppPage = getPage(raf);
+            if (firstAppPage.isLeaf) {
+                return;
+            }
+            for (int i = 0; i < currentPage.numElements; i++) {
+                if (currentPage.elements[i].getId() == id) {
+                    element = currentPage.elements[i + 1];
+                }
+            }
+            for (int i = 0; i < firstAppPage.numElements; i++) {
+                if (firstAppPage.elements[i].getId() == id) {
+                    firstAppPage.elements[i] = element;
+                    firstAppPage.elements[i].setPointer(originalFp);
+                }
+            }
+            overWritePage(raf, firstApp, firstAppPage);
+
+
+            raf.seek(originalFp);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void leftShiftPage(RandomAccessFile raf, int elementToShift, boolean moveLast) {
         try {
             BPlusTreePage page = getPage(raf);
+
             for (int i = elementToShift; i < page.numElements - 1; i++) {
                 page.elements[i] = page.elements[i + 1];
                 page.pointers[i] = page.pointers[i + 1];
             }
-
+            if (moveLast) {
+                page.pointers[page.numElements - 1] = page.pointers[page.numElements];
+            }
             page.numElements--;
             overWritePage(raf, raf.getFilePointer(), page);
 
@@ -650,12 +798,12 @@ public class BPlusTreeDAO {
             }
             raf.seek(leftBrotherPointer);
             leftBrother = getPage(raf);
-            raf.seek(leftBrother.pointers[leftBrother.numElements]);
+//            raf.seek(leftBrother.pointers[bOrder - 1]);
             BPlusTreePage focusPage = getPage(raf);
             boolean haveRight;
             haveRight = haveRightBrohter(raf, focusPage.elements[focusPage.numElements - 1].getId());
             if (haveRight) {
-                rightBrotherPointer = focusPage.pointers[focusPage.numElements];
+                rightBrotherPointer = focusPage.pointers[bOrder - 1];
                 raf.seek(rightBrotherPointer);
                 rightBrother = getPage(raf);
             }
@@ -691,14 +839,14 @@ public class BPlusTreeDAO {
         boolean result = true;
         try {
             long originalFP = raf.getFilePointer();
-            raf.seek(rootPage);
+//            raf.seek(rootPage);
             BPlusTreePage page = getPage(raf);
-            while (!page.isLeaf) {
-                raf.seek(page.pointers[page.numElements]);
-                page = getPage(raf);
-
-            }
-            if (page.elements[page.numElements - 1].getId() == id) {
+//            while (!page.isLeaf) {
+//                raf.seek(page.pointers[page.numElements]);
+//                page = getPage(raf);
+//
+//            }
+            if (page.pointers[bOrder - 1] == -1) {
                 result = false;
             }
             raf.seek(originalFP);
@@ -708,17 +856,26 @@ public class BPlusTreeDAO {
         return result;
     }
 
-    public long getLeftBrother(RandomAccessFile raf, int idToSeek) {
+    public long getLeftBrother(RandomAccessFile raf, int id) {
         long result = -1;
         try {
             long originalFP = raf.getFilePointer();
+//            long upperPagePointer = getFirstAppearence(raf, id);
             raf.seek(rootPage);
-            long upperPagePointer = getFirstAppearence(raf, idToSeek);
             BPlusTreePage page = getPage(raf);
             raf.seek(page.pointers[0]);
+            for (int i = 0; i < page.numElements; i++) {
+                if (page.elements[i].getId() == id && i != 0) {
+                    raf.seek(page.pointers[i - 1]);
+                } else if (page.elements[i].getId() > id && i != 0) {
+                    raf.seek(page.pointers[i - 1]);
+                }
+            }
+            System.out.println(raf.getFilePointer());
+            page = getPage(raf);
             while (!page.isLeaf) {
-                page = getPage(raf);
                 raf.seek(page.pointers[page.numElements]);
+                page = getPage(raf);
             }
             result = raf.getFilePointer();
             raf.seek(originalFP);
@@ -734,22 +891,28 @@ public class BPlusTreeDAO {
         long result = -1;
         try {
             long originalFP = raf.getFilePointer();
+            raf.seek(this.rootPage);
             BPlusTreePage page = getPage(raf);
-            boolean found = false;
-            result = page.pointers[page.numElements];
-            for (int i = 0; i < page.numElements && !found; i++) {
-                if (page.elements[i].getId() == id) {
-                    result = raf.getFilePointer();
-                    raf.seek(originalFP);
-                    return result;
-                } else if (page.elements[i].getId() > id) {
-                    result = page.pointers[i];
-                    found = true;
+            boolean loop = true;
+            boolean loopFor = true;
+            long next = 0;
+            while (loop) {
+                next = page.pointers[page.numElements];
+                for (int i = 0; i < page.numElements && loopFor; i++) {
+                    if (page.elements[i].getId() == id) {
+                        loop = false;
+                        loopFor = false;
+                        result = raf.getFilePointer();
+                    } else if (page.elements[i].getId() > id) {
+                        next = page.pointers[i];
+                        loopFor = false;
+                    }
                 }
-            }
-            if (found) {
-                raf.seek(result);
-                getFirstAppearence(raf, id);
+                loopFor = true;
+                if (next != -1) {
+                    raf.seek(next);
+                    page = getPage(raf);
+                }
             }
             raf.seek(originalFP);
         } catch (Exception e) {

@@ -17,8 +17,12 @@ public class Main {
 //        arq.csvToByte();
 //        BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin",8);
         BPlusTreeDAO index = new BPlusTreeDAO("../resources/indexB.bin");
-//        arq.buildIndexFile(index);
-            index.deleteElement(3);
+        arq.buildIndexFile(index);
+        index.deleteElement(6);
+        System.out.println("===============================");
+        index.printAllPages();
+        System.out.println("===============================");
+
 //        for (int i = 0; i < 30; i++) {
 
 //        }
@@ -31,7 +35,6 @@ public class Main {
 //        index.printTree   ();
 //        BPlusTreePage bPlusTreePage = new BPlusTreePage(3);
 //        index.writeNewPage(new RandomAccessFile("../resources/indexB.bin", "rw"), bPlusTreePage);
-
 
 
     }

@@ -17,7 +17,10 @@ public class BPlusTreePage {
     public long[] pointers;
     public PageElement[] elements;
 
+    public int Order;
+
     public BPlusTreePage(int bOrder) {
+        this.Order = bOrder;
         this.numElements = 0;
         this.isLeaf = true;
         this.pageLength = calcLength(bOrder);
@@ -86,6 +89,7 @@ public class BPlusTreePage {
             strBuilder.append(" | " + this.pointers[i + 1]);
         }
         strBuilder.append(" |");
+        strBuilder.append(" Last page pointer: " + this.pointers[Order-1]);
         System.out.println(strBuilder.toString());
     }
 }
