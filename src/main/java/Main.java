@@ -40,5 +40,6 @@ public class Main {
 //
 //         anime.printAttributes();
 //         }
+
     }
 }

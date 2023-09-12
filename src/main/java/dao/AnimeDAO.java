@@ -291,6 +291,7 @@ public class AnimeDAO {
             } else {
                 int recordLength;
                 boolean found = false;
+                
                 for (int i = 4; (i < raf.length()) && (!found); i += (5 + recordLength)) {
 
                     raf.read(byteArray, 0, 4);
