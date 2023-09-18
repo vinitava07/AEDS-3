@@ -19,13 +19,6 @@ public class Main {
         //         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASAJFDSJFJHFJDASJFSHFSDJFHASFHKLADSFDASHFLADSJLFHADSFJADSHLFJKA SDFHLASDFAASDLJJJJJJJJJFHDSLJKFHASLFJKSADF HSADJF ADSJF HJLASLF HADSFJL SHF",
         //         "null", 0, "gdsfgdsfgdsfdsgdfg",
         //         "nulddgfdgdfgdgdfgdsfgdgdgdfgdfgdfgdgdsggdgdfgdgdgdgdgdfgdfgdfggsdfgdsgl", 0, ts);
-        // Anime a = new Anime("null", "null", 0, "null", "null", 0, ts);
-        // arq.updateRecord(0, a);
-        // arq.printAllAnime();
-        // Anime anime = arq.searchAnimeByIad(12);
-        // if (anime != null) {
-        int x = 3;
-        // anime.printAttributes();
-        // }
+
     }
 }

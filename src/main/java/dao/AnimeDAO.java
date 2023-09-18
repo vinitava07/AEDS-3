@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 import model.Anime;
 import model.Arquivo;
@@ -252,7 +253,7 @@ public class AnimeDAO {
             } else {
                 int recordLength;
                 boolean found = false;
-                
+
                 for (int i = 4; (i < raf.length()) && (!found); i += (5 + recordLength)) {
 
                     raf.read(byteArray, 0, 4);
@@ -378,6 +379,57 @@ public class AnimeDAO {
             // TODO: handle exception
         }
 
+    }
+
+    public boolean criarListaInvertidaType(ListaInvertidaTypeDAO listFile) {
+        boolean result = true;
+        try {
+            RandomAccessFile animeRaf = new RandomAccessFile(this.arquivo.nameBin, "rw");
+            RandomAccessFile listaRaf = new RandomAccessFile(listFile.arquivo.nameBin, "rw");
+            ArrayList<Long> pointers = new ArrayList<>();
+            ArrayList<String> types = new ArrayList<>();
+            int lastID = animeRaf.readInt();
+            boolean isValid;
+            int animeLength = 0;
+            int animeID = 0;
+            long recordPointer;
+            byte[] bytes = new byte[4];
+            Anime anime = new Anime();
+            for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
+                recordPointer = animeRaf.getFilePointer();
+                animeRaf.read(bytes, 0, 4);
+                isValid = isValidRecord(bytes[0]);
+                animeLength = getRecordLength(bytes, isValid);
+                animeID = animeRaf.readInt();
+                if (isValid) {
+                    anime = getRecord(animeRaf);
+                    if (!types.contains(anime.type)) {
+                        types.add(anime.type);
+                    }
+                }
+
+
+            }
+            animeRaf.seek(4);
+            for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
+                recordPointer = animeRaf.getFilePointer();
+                animeRaf.read(bytes, 0, 4);
+                isValid = isValidRecord(bytes[0]);
+                animeLength = getRecordLength(bytes, isValid);
+                animeID = animeRaf.readInt();
+                if (isValid) {
+
+                }
+
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        return result;
     }
 
 }
