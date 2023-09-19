@@ -23,16 +23,19 @@ public class ListaInvertida {
         this.qtdPointers = 1;
         this.graveyard = false;
     }
+
     public void setElement(String element) {
         this.element = element;
     }
 
     public void setPointers(ArrayList<Long> pointers) {
         this.pointers = pointers;
+        qtdPointers = pointers.size();
     }
 
-    public void setPointersIndex(int index, long pointer) {
+    public void addPointer(int index, long pointer) {
         this.pointers.set(index, pointer);
+        this.qtdPointers++;
     }
 
     public int getQtdPointers() {
