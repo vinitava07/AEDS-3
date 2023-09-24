@@ -5,15 +5,21 @@ import java.io.File;
     INT(4) */
 
 /* lapide       length   id      name        type        episodes    studio     tags       rating      release_year
+<<<<<<< HEAD
+ * boolean(  int(4))    int(4)  varchar  char(5)      int(4)     varchar    varchar    float(4)    long(8)
+=======
  * (boolean() +  int(4))  int(4)  (2)+varchar  char(5)      int(4)     varchar    varchar    float(4)    long(8)
+>>>>>>> main
  */
 
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 
 import model.Anime;
 import model.Arquivo;
+import model.ListaInvertida;
 import model.Record;
 
 public class AnimeDAO {
@@ -291,7 +297,7 @@ public class AnimeDAO {
             } else {
                 int recordLength;
                 boolean found = false;
-                
+
                 for (int i = 4; (i < raf.length()) && (!found); i += (5 + recordLength)) {
 
                     raf.read(byteArray, 0, 4);
@@ -416,6 +422,140 @@ public class AnimeDAO {
             // TODO: handle exception
         }
 
+    }
+
+    public ArrayList<String> criarListaInvertidaType(ListaInvertidaDAO listFile) {
+        boolean result = true;
+        ArrayList<String> types = new ArrayList<>();
+        try {
+            RandomAccessFile animeRaf = new RandomAccessFile(this.arquivo.nameBin, "rw");
+            RandomAccessFile listaRaf = new RandomAccessFile(listFile.arquivo.nameBin, "rw");
+            ArrayList<Long> pointers = new ArrayList<>();
+            int lastID = animeRaf.readInt();
+            boolean isValid;
+            int animeLength = 0;
+            int animeID = 0;
+            long recordPointer;
+            byte[] bytes = new byte[4];
+            Anime anime;
+            ListaInvertida listaInvertida = new ListaInvertida();
+            for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {//PEGA TODOS OS TYPES DISPONIVEIS
+                recordPointer = animeRaf.getFilePointer();
+                animeRaf.read(bytes, 0, 4);
+                isValid = isValidRecord(bytes[0]);
+                animeLength = getRecordLength(bytes, isValid);
+                animeID = animeRaf.readInt();
+                if (isValid) {
+                    anime = getRecord(animeRaf);
+                    if (!types.contains(anime.type)) {
+                        types.add(anime.type);
+                    }
+                } else {
+                    animeRaf.seek(recordPointer + animeLength + 4);
+                }
+
+
+            }
+            listFile.listaIndices = types;
+            listFile.writeIndices(listaRaf);
+            animeRaf.seek(4);
+            for (int j = 0; j < types.size(); j++) {
+
+                for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
+                    recordPointer = animeRaf.getFilePointer();
+                    animeRaf.read(bytes, 0, 4);
+                    isValid = isValidRecord(bytes[0]);
+                    animeLength = getRecordLength(bytes, isValid);
+                    animeID = animeRaf.readInt();
+                    if (isValid) {
+                        anime = getRecord(animeRaf);
+                        if (types.get(j).equals(anime.type)) {
+                            pointers.add(recordPointer);
+//                            anime.printAttributes();
+                        }
+
+                    } else {
+                        animeRaf.seek(recordPointer + animeLength + 4);
+                    }
+                }
+                listaInvertida.setPointers(pointers);
+                listaInvertida.setElement(types.get(j).trim());
+                listFile.writeNewList(listaRaf, listaInvertida, true);
+                pointers = new ArrayList<>();
+                animeRaf.seek(4);
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return types;
+    }
+
+    public void criarListaInvertidaStudio(ListaInvertidaDAO listFile) {
+        boolean result = true;
+        ArrayList<String> studios = new ArrayList<>();
+        try {
+            RandomAccessFile animeRaf = new RandomAccessFile(this.arquivo.nameBin, "rw");
+            RandomAccessFile listaRaf = new RandomAccessFile(listFile.arquivo.nameBin, "rw");
+            ArrayList<Long> pointers = new ArrayList<>();
+            int lastID = animeRaf.readInt();
+            boolean isValid;
+            int animeLength = 0;
+            int animeID = 0;
+            long recordPointer;
+            byte[] bytes = new byte[4];
+            Anime anime;
+            ListaInvertida listaInvertida = new ListaInvertida();
+            for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {//PEGA TODOS OS TYPES DISPONIVEIS
+                recordPointer = animeRaf.getFilePointer();
+                animeRaf.read(bytes, 0, 4);
+                isValid = isValidRecord(bytes[0]);
+                animeLength = getRecordLength(bytes, isValid);
+                animeID = animeRaf.readInt();
+                if (isValid) {
+                    anime = getRecord(animeRaf);
+                    if (!studios.contains(anime.studio)) {
+                        studios.add(anime.studio);
+                    }
+                } else {
+                    animeRaf.seek(recordPointer + animeLength + 4);
+                }
+
+
+            }
+            listFile.listaIndices = studios;
+            listFile.writeIndices(listaRaf);
+            animeRaf.seek(4);
+            for (int j = 0; j < studios.size(); j++) {
+                for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
+                    recordPointer = animeRaf.getFilePointer();
+                    animeRaf.read(bytes, 0, 4);
+                    isValid = isValidRecord(bytes[0]);
+                    animeLength = getRecordLength(bytes, isValid);
+                    animeID = animeRaf.readInt();
+                    if (isValid) {
+                        anime = getRecord(animeRaf);
+                        if (studios.get(j).equals(anime.studio)) {
+                            pointers.add(recordPointer);
+//                            anime.printAttributes();
+                        }
+
+                    } else {
+                        animeRaf.seek(recordPointer + animeLength + 4);
+                    }
+                }
+                listaInvertida.setPointers(pointers);
+                listaInvertida.setElement(studios.get(j).trim());
+                listFile.writeNewList(listaRaf, listaInvertida, true);
+                pointers = new ArrayList<>();
+                animeRaf.seek(4);
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
