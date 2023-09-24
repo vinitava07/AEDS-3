@@ -34,8 +34,7 @@ public class ListaInvertida {
     }
 
     public void addPointer(int index, long pointer) {
-        this.pointers.set(index, pointer);
-        this.qtdPointers++;
+        this.pointers.add(index, pointer);
     }
 
     public int getQtdPointers() {

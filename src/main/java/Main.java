@@ -1,25 +1,18 @@
-import java.io.RandomAccessFile;
-import java.text.SimpleDateFormat;
-import java.sql.Time;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-
 import dao.AnimeDAO;
-import dao.ListaInvertidaTypeDAO;
+import dao.ListaInvertidaDAO;
 import model.Anime;
-import model.Arquivo;
+
+import java.sql.Timestamp;
 
 public class Main {
     public static void main(String[] args) throws Exception {
         AnimeDAO arq = new AnimeDAO("../resources/ListaAnime.csv", "../resources/animeBin.bin");
-        // Timestamp ts = new Timestamp(0);
-//        arq.csvToByte();
-        ListaInvertidaTypeDAO listaInvertidaTypeDAO = new ListaInvertidaTypeDAO
+
+        Timestamp ts = new Timestamp(0);
+        Anime a = new Anime("abc", "TV", 3, "ufotable", "a,b,c", 3.2F, ts);
+
+        ListaInvertidaDAO listaInvertidaTypeDAO = new ListaInvertidaDAO
                 ("../resources/ListaInvertidaType.bin");
-        arq.criarListaInvertidaType(listaInvertidaTypeDAO);
-        listaInvertidaTypeDAO.printIndex(arq);
-        // arq.removeAnime(0);
 
         // Anime a = new Anime(
         //         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASAJFDSJFJHFJDASJFSHFSDJFHASFHKLADSFDASHFLADSJLFHADSFJADSHLFJKA SDFHLASDFAASDLJJJJJJJJJFHDSLJKFHASLFJKSADF HSADJF ADSJF HJLASLF HADSFJL SHF",
