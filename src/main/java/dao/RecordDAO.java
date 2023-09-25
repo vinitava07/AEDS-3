@@ -299,7 +299,7 @@ public class RecordDAO extends AnimeDAO {
                 file[i].delete();
             }
         }
-        try (RandomAccessFile raf = new RandomAccessFile(arquivo.nameBin, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
             sortAndInsert(raf, fileNames, caminhos, bloco);
             intercalation(fileNames, caminhos, bloco);
         } catch (Exception e) {
