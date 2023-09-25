@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.NoSuchElementException;
 
 /*
         [LONG pointerToRoot: (8) + INT ordTree (4)]
@@ -18,8 +19,8 @@ import java.util.Comparator;
     * */
 public class BPlusTreeDAO {
     public Arquivo indexFile;
-    private int bOrder;
-    private long rootPage;
+    public int bOrder;
+    public long rootPage;
     int minElements;
 
     public enum operation {
@@ -31,9 +32,10 @@ public class BPlusTreeDAO {
         left, right, none;
     }
 
-    public BPlusTreeDAO(String binFileName) {
+    public BPlusTreeDAO(String fileName) {
 //        this.minElements = (int) Math.ceil((((double) bOrder / 2) - 1));
 //        System.out.println("min:" +bOrder);
+        String binFileName = "../resources/" + fileName;
         try {
             if (new File(binFileName).exists() == false)
                 throw new FileNotFoundException("The file: \"" + binFileName + "\" doesn't exist!");
@@ -48,8 +50,8 @@ public class BPlusTreeDAO {
         }
     }
 
-    public BPlusTreeDAO(String indexFileName, int bOrder) {
-
+    public BPlusTreeDAO(String fileName, int bOrder) {
+        String indexFileName = "../resources/" + fileName;
         try {
             if (bOrder < 3) throw new Exception("Não é possível uma árvore B de ordem menor que 3!");
             File file = new File(indexFileName);
@@ -366,10 +368,15 @@ public class BPlusTreeDAO {
                 }
             }
             if (!found) {
-                raf.seek(whereToGo(page, id));
+                long whereToGo = whereToGo(page, id);
+                if(whereToGo== -1) throw new NoSuchElementException("Anime not found!");
+                raf.seek(whereToGo);
                 result = search(raf, id);
             }
-        } catch (Exception e) {
+        } catch (NoSuchElementException e) {
+            System.err.println(e.getLocalizedMessage());
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -539,13 +546,13 @@ public class BPlusTreeDAO {
 //                if ((currentPageFP != this.rootPage)) {
                 if (op == operation.cantRemove) {
                     System.out.println("NAO PODE REMOVER, O QUE FAZER");
-                    wichBrother wichConcede;
-                    wichConcede = wichBrotherCanTake(raf, id);
-                    if (wichConcede == wichBrother.left) {
+                    wichBrother whichConcede;
+                    whichConcede = whichBrotherCanTake(raf, id);
+                    if (whichConcede == wichBrother.left) {
                         System.out.println("TAKE FROM LEFT");
                         takeFromLeft(raf, id);
                         return operation.success;
-                    } else if (wichConcede == wichBrother.right) {
+                    } else if (whichConcede == wichBrother.right) {
                         System.out.println("TAKE FROM RIGHT");
                         takeFromRight(raf, id);
                         return operation.success;
@@ -775,7 +782,7 @@ public class BPlusTreeDAO {
 
     }
 
-    private wichBrother wichBrotherCanTake(RandomAccessFile raf, int id) {
+    private wichBrother whichBrotherCanTake(RandomAccessFile raf, int id) {
         wichBrother result = wichBrother.none;
         //-1 FOR NONE
         // 0 FOR ONLY LEFT

@@ -37,7 +37,7 @@ public class Anime {
     }
 
     public void printAttributes() {
-        System.out.println("Name: " + name);
+        System.out.println("\nName: " + name);
         System.out.println("Type: " + type);
         System.out.println("Episodes: " + episodes);
         System.out.println("Studio: " + studio);
