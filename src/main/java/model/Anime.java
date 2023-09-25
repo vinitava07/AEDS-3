@@ -9,7 +9,23 @@ import java.util.Date;
 public class Anime {
     public String name;
     public String type;
-    public int episodes;
+    public int episodes;//            for (int j = 0; j < types.size(); j++) {
+//
+//                for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
+//                    recordPointer = animeRaf.getFilePointer();
+//                    animeRaf.read(bytes, 0, 4);
+//                    isValid = isValidRecord(bytes[0]);
+//                    animeLength = getRecordLength(bytes, isValid);
+//                    animeID = animeRaf.readInt();
+//                    if (isValid) {
+//                        if (anime.type)
+//
+//                    }
+//
+//
+//                }
+//            }
+
     public String studio;
     public String tags;
     public float rating;
@@ -124,7 +140,7 @@ public class Anime {
 
     }
 
-    public int getByteLength() {
+    public int getByteLength() {//animelen = id + anime
         /*
          * length = id size(int 4) + (utf 2 extra bytes) + name size + type (fixed size of 5) 
          * + episodes size(int 4) + (utf 2 extra bytes) + studio size + (utf 2 extra bytes)  + tags size 

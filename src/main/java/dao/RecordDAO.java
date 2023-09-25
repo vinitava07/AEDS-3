@@ -122,13 +122,6 @@ public class RecordDAO extends AnimeDAO {
         }
     }
 
-    private void intercalacaoPar() {
-
-    }
-
-    private void intercalacaoImpar() {
-
-    }
 
     private void intercalation(String[] fileNames, int caminhos, int bloco) {
 
@@ -159,17 +152,14 @@ public class RecordDAO extends AnimeDAO {
             RandomAccessFile[] files = new RandomAccessFile[caminhos * 2];
             int fileToBeRewriten = 0;
             int contador = 0;
-//            (this.qtdRegistros / tamBloco)
-//            )
+
             while (tamBloco < this.qtdRegistros) {
                 for (int i = 0; i < caminhos * 2; i++) {
                     files[i] = new RandomAccessFile(fileNames[i], "rw");
                 }
                 contador = 0;
-                System.out.println("AAAAAAAAAA : " + 1);
                 while (contador < Math.ceil(((float) qtdRegistros / (tamBloco * caminhos)))) {
-                    System.out.println("ftoCOMEÇOW0: " + fileToWrite);
-                    System.out.println("ftoCOMEÇOR0: " + fileToRead);
+
                     while (allBlocksRead == false) {
 
                         if (firstIteration) {
@@ -206,7 +196,6 @@ public class RecordDAO extends AnimeDAO {
                                     posLido = i;
                                 }
                             }
-                            System.out.println("id: " + minRecord.getId());
 
 
                             writeDirectRecordBytes(minRecord, files[fileToWrite]);
@@ -237,7 +226,6 @@ public class RecordDAO extends AnimeDAO {
                     firstIteration = true;
                     allBlocksRead = false;
 
-                    System.out.println("ftoW: " + (fileToWrite));
                     fileToBeRewriten = fileToWrite;
                     contadorFile = (contadorFile + 1) % caminhos;
                     if (caminhoUltimos) {
@@ -248,15 +236,12 @@ public class RecordDAO extends AnimeDAO {
                         fileToRead = caminhos;
 
                     }
-//                    System.out.println("ftoW0: " + fileToWrite);
-//                    System.out.println("ftoR0: " + fileToRead);
-//                    System.out.println("ftoR: " + fileToRead);
+
                     contador++;
                 }/**FIM DE "while (contador < Math.ceil(((float) qtdRegistros / (tamBloco * caminhos))))"
                    *FAZ A INTERCALAÇÃO N VEZES */
 
-//                System.out.println("ACABOUUUUUU");
-//                System.err.println("contador: " + contador);
+
                 tamBloco = tamBloco * caminhos;
                 contadorFile = 0;
 
@@ -268,32 +253,21 @@ public class RecordDAO extends AnimeDAO {
                 caminhoUltimos = !caminhoUltimos;
                 if (caminhoUltimos) {
                     fileToWrite = fileArray2[contadorFile];
-//                    System.out.println("ftoW: " + fileToWrite);
                     arquivos[fileToWrite].delete();
                     fileToRead = 0;
                     arquivos[fileToWrite + 1].delete();
-//                    System.out.println("ftoW: " + (fileToWrite + 1));
-//                    System.out.println("ftoW: " + (fileToWrite));
 
                 } else {
-//                    System.out.println("ftoW: " + (fileToWrite - 1));
                     fileToWrite = fileArray[contadorFile];
-//                    System.out.println("ftoW: " + fileToWrite);
                     arquivos[fileToWrite].delete();
                     fileToRead = caminhos;
                     arquivos[fileToWrite + 1].delete();
                 }
 
 
-//                tamBloco = qtdRegistros;
-//                contadorFile = 1;
-
-
             }/**FIM DO "while (tamBloco < this.qtdRegistros)"
                *ACABOU A INTERCALAÇÃO */
 
-            System.out.println(fileToBeRewriten);
-            System.out.println("ftoW FINAL: " + fileToWrite);
             RandomAccessFile raf = new RandomAccessFile("../resources/intercaladoComum.bin", "rw");
             String finalFile = "f" + fileToBeRewriten + ".bin";
             RandomAccessFile raf2 = new RandomAccessFile(finalFile, "rw");
@@ -332,40 +306,17 @@ public class RecordDAO extends AnimeDAO {
             System.err.println("Erro intercalacao Balanceada");
             e.printStackTrace();
         }
-//
-//
+
+        // TODO : deletar corretamente os arquivos
+        // nao funciona :
+        for (int i = 0; i < caminhoDobro; i++) { // open files
+            file[i] = new File(fileNames[i]);
+            if (file[i].exists()) {
+                file[i].delete();
+            }
+        }
 
 
     }
 
 }
-//while (!allBlocksRead) {
-//        fileToWrite = caminhos;
-//        for (int i = 0; i < caminhos; i++) {
-//        if (canRead[i]) {
-//        records[i] = getRecord(files[fileToRead]);
-//        }
-//        }
-//        minRecord = records[0];
-//        for (int i = 0; i < caminhos; i++) {
-//        if (canRead[i] && minRecord.getId() > records[i].getId()) {
-//        minRecord = records[i];
-//        posLido = i;
-//        }
-//        }
-//        writeAnimeBytes(minRecord, files[fileToWrite], false);
-//        filePos[posLido]++;
-//        int countRead = 0;
-//        for (int i = 0; i < caminhos; i++) {
-//        if (filePos[i] == tamBloco) {
-//        canRead[i] = false;
-//        }
-//        }
-//        for (int i  = 0; i < caminhos; i++) {
-//        if (!canRead[i]) {
-//        countRead++;
-//        }
-//        }
-//        if (countRead == caminhos) {
-//        allBlocksRead = true;
-//        }
