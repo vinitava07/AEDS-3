@@ -50,10 +50,10 @@ public class AnimeDAO {
         Anime anime;
         Record r = new Record();
         // (animeText = csvFile.readLine()) != null
-        if (bin.exists()) {
-            System.out.println("Arquivo recriado!");
-            bin.delete();
-        }
+//        if (bin.exists()) {
+//            System.out.println("Arquivo recriado!");
+//            bin.delete();
+//        }
         try {
             RandomAccessFile csvFile = new RandomAccessFile(csv, "r");
             RandomAccessFile binFile = new RandomAccessFile(bin, "rw");
@@ -67,9 +67,8 @@ public class AnimeDAO {
                 // System.out.println(animeText);
                 // anime.printAttributes();
                 writeAnimeBytes(r, binFile, false);
-
                 contador++;
-
+                ProgressBar.updateProgress(contador);
             }
             csvFile.close();
             binFile.close();
@@ -471,7 +470,6 @@ public class AnimeDAO {
                 boolean validRecord;
                 byte[] byteArray = new byte[4];
                 raf.seek(4);
-                ProgressBar progressBar = new ProgressBar(raf.length());
                 for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
                     long dataFilePosition = raf.getFilePointer();
                     raf.read(byteArray, 0, 4);
@@ -485,9 +483,7 @@ public class AnimeDAO {
                     } else {
                         raf.seek(filePointer + recordLength);
                     }
-                    progressBar.updateStatus(i);
                 }
-                progressBar.done();
                 raf.close();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -678,5 +674,4 @@ public class AnimeDAO {
             e.printStackTrace();
         }
     }
-
 }

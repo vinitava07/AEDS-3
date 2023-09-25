@@ -35,7 +35,7 @@ public class BPlusTreeDAO {
     public BPlusTreeDAO(String fileName) {
 //        this.minElements = (int) Math.ceil((((double) bOrder / 2) - 1));
 //        System.out.println("min:" +bOrder);
-        String binFileName = "../resources/" + fileName;
+        String binFileName = "../resources/indexB_" + fileName;
         try {
             if (new File(binFileName).exists() == false)
                 throw new FileNotFoundException("The file: \"" + binFileName + "\" doesn't exist!");
@@ -51,7 +51,7 @@ public class BPlusTreeDAO {
     }
 
     public BPlusTreeDAO(String fileName, int bOrder) {
-        String indexFileName = "../resources/" + fileName;
+        String indexFileName = "../resources/indexB_" + fileName;
         try {
             if (bOrder < 3) throw new Exception("Não é possível uma árvore B de ordem menor que 3!");
             File file = new File(indexFileName);
