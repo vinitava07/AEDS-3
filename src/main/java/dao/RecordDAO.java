@@ -21,14 +21,14 @@ public class RecordDAO extends AnimeDAO {
         arquivo = null;
     }
 
-    public RecordDAO(Record record, Arquivo arquivrecordo) {
+    public RecordDAO(Record record, Arquivo arquivo) {
         this.r = record;
         this.arquivo = arquivo;
     }
 
-    public RecordDAO(Arquivo arquivo) {
+    public RecordDAO(String arquivo) {
         this.r = null;
-        this.arquivo = arquivo;
+        this.arquivo = new Arquivo("../resources/" + arquivo);
     }
 
     private Record getRecord(RandomAccessFile raf) {
@@ -216,7 +216,7 @@ public class RecordDAO extends AnimeDAO {
                         }
 
                     }/**FIM DE "while (allBlocksRead == false)"
-                       *INTERCALA OS BLOCOS */
+                     *INTERCALA OS BLOCOS */
 
 
                     for (int i = 0; i < caminhos; i++) {
@@ -239,7 +239,7 @@ public class RecordDAO extends AnimeDAO {
 
                     contador++;
                 }/**FIM DE "while (contador < Math.ceil(((float) qtdRegistros / (tamBloco * caminhos))))"
-                   *FAZ A INTERCALAÇÃO N VEZES */
+                 *FAZ A INTERCALAÇÃO N VEZES */
 
 
                 tamBloco = tamBloco * caminhos;
@@ -266,11 +266,12 @@ public class RecordDAO extends AnimeDAO {
 
 
             }/**FIM DO "while (tamBloco < this.qtdRegistros)"
-               *ACABOU A INTERCALAÇÃO */
-
-            RandomAccessFile raf = new RandomAccessFile("../resources/intercaladoComum.bin", "rw");
-            String finalFile = "f" + fileToBeRewriten + ".bin";
-            RandomAccessFile raf2 = new RandomAccessFile(finalFile, "rw");
+             *ACABOU A INTERCALAÇÃO */
+            File f = new File(arquivo.mainFile);
+            f.delete();
+            RandomAccessFile raf = new RandomAccessFile(f, "rw");
+            String finalFileAfterIntercalation = "f" + fileToBeRewriten + ".bin";
+            RandomAccessFile raf2 = new RandomAccessFile(finalFileAfterIntercalation, "rw");
             Record finalRecord = new Record();
             for (int i = 0; i < qtdRegistros; i++) {
                 finalRecord = getRecord(raf2);
