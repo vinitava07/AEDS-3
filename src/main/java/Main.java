@@ -1,4 +1,5 @@
 import dao.AnimeDAO;
+import dao.DynamicHashingDAO;
 import dao.ListaInvertidaDAO;
 import menu.Menu;
 import model.Anime;

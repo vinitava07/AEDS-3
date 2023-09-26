@@ -6,20 +6,25 @@ public class ProgressBar {
     private static String processName;
     private static JProgressBar progressBar;
     private static long hundredPerCent;
-    private static long progressValue;
 
     public static void init(String processName , long hundredPerCent) {
         ProgressBar.hundredPerCent = hundredPerCent;
         ProgressBar.processName = processName;
         ProgressBar.progressBar = new JProgressBar(0 , 10000);
-        ProgressBar.progressBar.setBorderPainted(true);
+        ProgressBar.progressBar.setStringPainted(true);
     }
 
-    public static void setProcessName(String processName) {
+    public static void setProcess(String processName , long hundredPerCent) {
+        ProgressBar.progressBar.setValue(0);
+        ProgressBar.setProcessName(processName);
+        ProgressBar.setHundredPerCent(hundredPerCent);
+    }
+
+    private static void setProcessName(String processName) {
         ProgressBar.processName = processName;
     }
 
-    public static void setHundredPerCent(long hundredPerCent) {
+    private static void setHundredPerCent(long hundredPerCent) {
         ProgressBar.progressBar.setValue(0);
         ProgressBar.hundredPerCent = hundredPerCent;
     }

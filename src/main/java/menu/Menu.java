@@ -73,31 +73,32 @@ public class Menu {
                 try {
                     AnimeDAO animeDAO = new AnimeDAO("animeBin.bin" , "ListaAnime.csv");
                     tela.add(ProgressBar.getProgressBar() , BorderLayout.CENTER);
+                    ProgressBar.setProcess("CSV to Byte" , 18494);
+                    tela.revalidate();
                     animeDAO.csvToByte();
-                    tela.revalidate();
 
-                    RandomAccessFile raf = new RandomAccessFile(animeDAO.arquivo.mainFile , "r");
-                    long length = raf.length();
-                    raf.close();
-
-                    BPlusTreeDAO bPlusTreeDAO = new BPlusTreeDAO("animeBin.bin" , 8);
-                    DynamicHashingDAO dynamicHashingDAO = new DynamicHashingDAO("animeBin.bin" , true);
-                    ProgressBar.setHundredPerCent(length - 4);
-                    ProgressBar.setProcessName("B+Tree index");
-                    tela.revalidate();
-                    animeDAO.buildIndexFile(bPlusTreeDAO);
-                    ProgressBar.setHundredPerCent(length - 4);
-                    ProgressBar.setProcessName("Hash index");
-                    tela.revalidate();
-                    animeDAO.buildIndexFile(dynamicHashingDAO);
+//                    RandomAccessFile raf = new RandomAccessFile(animeDAO.arquivo.mainFile , "r");
+//                    long length = raf.length();
+//                    raf.close();
+//
+//                    BPlusTreeDAO bPlusTreeDAO = new BPlusTreeDAO("animeBin.bin" , 8);
+//                    DynamicHashingDAO dynamicHashingDAO = new DynamicHashingDAO("animeBin.bin" , true);
+//                    ProgressBar.setProcess("B+Tree index" , length - 4);
+//                    tela.revalidate();
+//                    animeDAO.buildIndexFile(bPlusTreeDAO);
+//                    ProgressBar.setProcess("Dynamic Hash index" , length - 4);
+//                    tela.revalidate();
+//                    animeDAO.buildIndexFile(dynamicHashingDAO);
+//                    Thread.sleep(1);
                     tela.remove(ProgressBar.getProgressBar());
                     tela.revalidate();
+                    tela.repaint();
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }
             }
         });
-        tela.add(initButton, BorderLayout.SOUTH);
+        tela.add(initButton, BorderLayout.NORTH);
         tela.setBackground(new Color(116, 146, 206));
         return tela;
     }

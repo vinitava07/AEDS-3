@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-import menu.ProgressBar;
+import util.ProgressBar;
 import model.*;
 import model.Record;
 
@@ -58,15 +58,15 @@ public class AnimeDAO {
 
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-            while (contador < 15) {
+            while (contador < 18495) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 r.setAnime(anime);
                 // System.out.println(animeText);
                 // anime.printAttributes();
                 writeAnimeBytes(r, binFile, false);
+//                ProgressBar.updateProgress(r.getId());
                 contador++;
-//                ProgressBar.updateProgress(contador);
             }
             csvFile.close();
             binFile.close();
@@ -432,6 +432,7 @@ public class AnimeDAO {
             int recordLength;
             boolean validRecord;
             byte[] byteArray = new byte[4];
+            ProgressBar progressBar = new ProgressBar("B+Tree index file" , (double) (raf.length() - 4));
             raf.seek(0);
             lastId = raf.readInt();
             for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
@@ -444,13 +445,13 @@ public class AnimeDAO {
                     long dataFilePosition = raf.getFilePointer();
                     index.insertElement(id, dataFilePosition);
                     raf.seek(filePointer + recordLength);
-                    System.out.println(id);
+//                    System.out.println(id);
                 } else {
                     raf.seek(filePointer + recordLength);
                 }
-                ProgressBar.updateProgress(i);
+                progressBar.updateStatus((double) i);
             }
-            ProgressBar.updateProgress(raf.length() - 4);
+//            ProgressBar.updateProgress(raf.length() - 4);
             raf.close();
         } catch (Exception e) {
 
@@ -470,6 +471,8 @@ public class AnimeDAO {
                 boolean validRecord;
                 byte[] byteArray = new byte[4];
                 raf.seek(4);
+                ProgressBar progressBar = new ProgressBar("Dynamic Hash index file" , (double) (raf.length() - 4));
+                progressBar.startProcess();
                 for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
                     long dataFilePosition = raf.getFilePointer();
                     raf.read(byteArray, 0, 4);
@@ -478,15 +481,14 @@ public class AnimeDAO {
                     long filePointer = raf.getFilePointer();
                     if (validRecord) {
                         int id = raf.readInt();
-                        System.out.println(id);
                         index.insertElement(new PageElement(id , dataFilePosition));
                         raf.seek(filePointer + recordLength);
                     } else {
                         raf.seek(filePointer + recordLength);
                     }
-                    ProgressBar.updateProgress(i);
+                    progressBar.updateStatus((double) i);
                 }
-                ProgressBar.updateProgress(raf.length() - 4);
+                progressBar.done();
                 raf.close();
             } catch (Exception e) {
                 e.printStackTrace();
