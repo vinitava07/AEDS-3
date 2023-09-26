@@ -71,8 +71,9 @@ public class Menu {
             public void actionPerformed(ActionEvent e) {
 
                 try {
-                    AnimeDAO animeDAO = new AnimeDAO("animeBin.bin");
+                    AnimeDAO animeDAO = new AnimeDAO("animeBin.bin" , "ListaAnime.csv");
                     tela.add(ProgressBar.getProgressBar() , BorderLayout.CENTER);
+                    animeDAO.csvToByte();
                     tela.revalidate();
 
                     RandomAccessFile raf = new RandomAccessFile(animeDAO.arquivo.mainFile , "r");
@@ -89,6 +90,8 @@ public class Menu {
                     ProgressBar.setProcessName("Hash index");
                     tela.revalidate();
                     animeDAO.buildIndexFile(dynamicHashingDAO);
+                    tela.remove(ProgressBar.getProgressBar());
+                    tela.revalidate();
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }

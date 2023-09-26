@@ -13,17 +13,15 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-import model.Anime;
-import model.Arquivo;
-import model.PageElement;
-import model.ListaInvertida;
+import menu.ProgressBar;
+import model.*;
 import model.Record;
-import util.ProgressBar;
+
+import javax.swing.*;
 
 public class AnimeDAO {
-
     Anime a;
-    Arquivo arquivo;
+    public Arquivo arquivo;
 
     public AnimeDAO(String bin, String csv) {
         a = new Anime();
@@ -50,10 +48,10 @@ public class AnimeDAO {
         Anime anime;
         Record r = new Record();
         // (animeText = csvFile.readLine()) != null
-//        if (bin.exists()) {
-//            System.out.println("Arquivo recriado!");
-//            bin.delete();
-//        }
+        if (bin.exists()) {
+            System.out.println("Arquivo recriado!");
+            bin.delete();
+        }
         try {
             RandomAccessFile csvFile = new RandomAccessFile(csv, "r");
             RandomAccessFile binFile = new RandomAccessFile(bin, "rw");
@@ -68,7 +66,7 @@ public class AnimeDAO {
                 // anime.printAttributes();
                 writeAnimeBytes(r, binFile, false);
                 contador++;
-                ProgressBar.updateProgress(contador);
+//                ProgressBar.updateProgress(contador);
             }
             csvFile.close();
             binFile.close();
@@ -450,7 +448,9 @@ public class AnimeDAO {
                 } else {
                     raf.seek(filePointer + recordLength);
                 }
+                ProgressBar.updateProgress(i);
             }
+            ProgressBar.updateProgress(raf.length() - 4);
             raf.close();
         } catch (Exception e) {
 
@@ -478,12 +478,15 @@ public class AnimeDAO {
                     long filePointer = raf.getFilePointer();
                     if (validRecord) {
                         int id = raf.readInt();
+                        System.out.println(id);
                         index.insertElement(new PageElement(id , dataFilePosition));
                         raf.seek(filePointer + recordLength);
                     } else {
                         raf.seek(filePointer + recordLength);
                     }
+                    ProgressBar.updateProgress(i);
                 }
+                ProgressBar.updateProgress(raf.length() - 4);
                 raf.close();
             } catch (Exception e) {
                 e.printStackTrace();

@@ -28,7 +28,10 @@ public class ProgressBar {
         double per10Thousand = (((double) progressValue) / ProgressBar.hundredPerCent) * 10000;
         int value = (int) Math.ceil(per10Thousand);
         progressBar.setValue(value);
-        if(value >= progressBar.getMaximum()) JOptionPane.showMessageDialog(null, (processName + " done!!"));
+        if(value >= progressBar.getMaximum()) {
+            JOptionPane.showMessageDialog(null, (processName + " done!!"));
+            progressBar.setValue(0);
+        }
     }
 
     public static JProgressBar getProgressBar() {
