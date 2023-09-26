@@ -49,7 +49,6 @@ public class AnimeDAO {
         Record r = new Record();
         // (animeText = csvFile.readLine()) != null
         if (bin.exists()) {
-            System.out.println("Arquivo recriado!");
             bin.delete();
         }
         try {
@@ -58,6 +57,8 @@ public class AnimeDAO {
 
             csvFile.readLine(); // read csv file header
             anime = new Anime();
+            ProgressBar progressBar = new ProgressBar("CSV to Byte" , 18494);
+            progressBar.startProcess();
             while (contador < 18495) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
@@ -65,9 +66,10 @@ public class AnimeDAO {
                 // System.out.println(animeText);
                 // anime.printAttributes();
                 writeAnimeBytes(r, binFile, false);
-//                ProgressBar.updateProgress(r.getId());
+                progressBar.updateStatus(r.getId());
                 contador++;
             }
+            progressBar.done();
             csvFile.close();
             binFile.close();
 
@@ -432,9 +434,10 @@ public class AnimeDAO {
             int recordLength;
             boolean validRecord;
             byte[] byteArray = new byte[4];
-            ProgressBar progressBar = new ProgressBar("B+Tree index file" , (double) (raf.length() - 4));
             raf.seek(0);
             lastId = raf.readInt();
+            ProgressBar progressBar = new ProgressBar("B+Tree index file" , (double) (raf.length() - 4));
+            progressBar.startProcess();
             for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
                 raf.read(byteArray, 0, 4);
                 validRecord = isValidRecord(byteArray[0]);
@@ -445,13 +448,12 @@ public class AnimeDAO {
                     long dataFilePosition = raf.getFilePointer();
                     index.insertElement(id, dataFilePosition);
                     raf.seek(filePointer + recordLength);
-//                    System.out.println(id);
                 } else {
                     raf.seek(filePointer + recordLength);
                 }
                 progressBar.updateStatus((double) i);
             }
-//            ProgressBar.updateProgress(raf.length() - 4);
+            progressBar.done();
             raf.close();
         } catch (Exception e) {
 
@@ -461,10 +463,7 @@ public class AnimeDAO {
 
     public void buildIndexFile(DynamicHashingDAO index) {
         try {
-            if(index.delete()) {
-                System.out.println("Hash successfully deleted!!");
-                if(index.create()) System.out.println("Hash successfully recreated!!");
-            }
+            index.delete();
             File file = new File(this.arquivo.mainFile);
             try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
                 int recordLength;
@@ -678,5 +677,11 @@ public class AnimeDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void loadData(BPlusTreeDAO bPlusTreeDAO , DynamicHashingDAO dynamicHashingDAO) {
+        this.csvToByte();
+        this.buildIndexFile(bPlusTreeDAO);
+        this.buildIndexFile(dynamicHashingDAO);
     }
 }

@@ -23,7 +23,7 @@ public class DynamicHashingDAO {
         if(file1.exists() || file.exists()) {
             if (deleteIfExists) {
                 if (this.delete()) {
-                    if(create()) System.out.println("Files recreated!");
+                    if(create()) ;//System.out.println("Files recreated!");
                     else System.out.println("Failed to recreate Files!!");
                 } else {
                     System.out.println("Failed to delete Files!!");

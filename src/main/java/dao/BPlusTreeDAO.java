@@ -57,7 +57,6 @@ public class BPlusTreeDAO {
             File file = new File(indexFileName);
             if (file.exists()) {
                 file.delete();
-                System.out.println("Arquivo deletado!");
             }
 
             indexFile = new Arquivo(indexFileName);
