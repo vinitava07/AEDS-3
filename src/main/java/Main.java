@@ -38,7 +38,9 @@ public class Main {
         int opMenu = 0;
         String nomeCsv;
         String nomeBin;
-        String nomeArquivo = lerNomeArquivo(sc);
+//        String nomeArquivo = lerNomeArquivo(sc);
+        String nomeArquivo = "ListaAnime";
+
         nomeCsv = nomeArquivo + ".csv";
         nomeBin = nomeArquivo + "Bin.bin";
         AnimeDAO animeDAO = new AnimeDAO(nomeBin, nomeCsv);

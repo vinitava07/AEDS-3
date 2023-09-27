@@ -18,7 +18,7 @@ public class ListaInvertidaDAO {
 
     //TODO: CREATE ANOTHER FILE FOR INDICES
     public ListaInvertidaDAO(String fileName, boolean create) {
-        File file = new File(fileName);
+        File file = new File("../resources/" + fileName);
         if (file.exists()) {
             file.delete();
         }
@@ -166,7 +166,7 @@ public class ListaInvertidaDAO {
             for (int i = 0; i < lista.getQtdPointers(); i++) {
                 raf.writeLong(pointers.get(i));
             }
-            System.out.println("Lista Inserida no arquivo");
+//            System.out.println("Lista Inserida no arquivo");
         } catch (Exception e) {
             e.printStackTrace();
         }
