@@ -153,7 +153,7 @@ public class RecordDAO extends AnimeDAO {
             RandomAccessFile[] files = new RandomAccessFile[caminhos * 2];
             int fileToBeRewriten = 0;
             int contador = 0;
-            ProgressBar progressBar = new ProgressBar("Teste" , this.qtdRegistros);
+            ProgressBar progressBar = new ProgressBar("Intercalação", this.qtdRegistros);
             progressBar.startProcess();
             while (tamBloco < this.qtdRegistros) {
                 for (int i = 0; i < caminhos * 2; i++) {
@@ -257,15 +257,18 @@ public class RecordDAO extends AnimeDAO {
                 caminhoUltimos = !caminhoUltimos;
                 if (caminhoUltimos) {
                     fileToWrite = fileArray2[contadorFile];
-                    arquivos[fileToWrite].delete();
+                    for (int i = 0; i < caminhos; i++) {
+                        arquivos[fileToWrite + i].delete();
+                    }
                     fileToRead = 0;
-                    arquivos[fileToWrite + 1].delete();
 
                 } else {
                     fileToWrite = fileArray[contadorFile];
-                    arquivos[fileToWrite].delete();
+                    for (int i = 0; i < caminhos; i++) {
+                        arquivos[fileToWrite + i].delete();
+                    }
+
                     fileToRead = caminhos;
-                    arquivos[fileToWrite + 1].delete();
                 }
 
 
