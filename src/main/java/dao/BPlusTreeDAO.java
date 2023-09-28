@@ -126,6 +126,71 @@ public class BPlusTreeDAO {
         }
     }
 
+    public boolean updateElement (PageElement updatedElement) {
+        boolean status = false;
+        try (RandomAccessFile raf = new RandomAccessFile(this.indexFile.mainFile, "rw")) {
+            raf.seek(this.rootPage);
+            BPlusTreePage page = getPage(raf);
+            boolean found = false;
+            for (int i = 0; (i < page.numElements && !found); i++) {
+                if (page.elements[i].getId() == updatedElement.getId()) {
+                    if (page.isLeaf) {
+                        page.elements[i] = updatedElement;
+                        overWritePage(raf , raf.getFilePointer() , page);
+                        found = true;
+                        status = true;
+                    } else {
+                        raf.seek(page.elements[i].getPointer());
+                        status = updateElement(raf, updatedElement);
+                    }
+                }
+            }
+            if (!found) {
+                raf.seek(whereToGo(page, updatedElement.getId()));
+                status = updateElement(raf, updatedElement);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            status = false;
+        }
+
+        return status;
+    }
+    private boolean updateElement(RandomAccessFile raf , PageElement updatedElement) {
+        boolean status = false;
+        long result = -1;
+        try {
+            BPlusTreePage page = getPage(raf);
+            boolean found = false;
+            for (int i = 0; (i < page.numElements && !found); i++) {
+                if (page.elements[i].getId() == updatedElement.getId()) {
+                    if (page.isLeaf) {
+                        page.elements[i] = updatedElement;
+                        overWritePage(raf , raf.getFilePointer() , page);
+                        found = true;
+                        status = true;
+                    } else {
+                        raf.seek(page.elements[i].getPointer());
+                        status = updateElement(raf, updatedElement);
+                    }
+                }
+            }
+            if (!found) {
+                long whereToGo = whereToGo(page, updatedElement.getId());
+                if(whereToGo== -1) throw new NoSuchElementException("Anime not found!");
+                raf.seek(whereToGo);
+                status = updateElement(raf, updatedElement);
+            }
+        } catch (NoSuchElementException e) {
+            System.err.println(e.getLocalizedMessage());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return status;
+    }
+
     private BPlusTreePage getPage(RandomAccessFile raf) {
         BPlusTreePage page = new BPlusTreePage(this.bOrder);
         try {

@@ -3,6 +3,7 @@ package dao;
 import model.Arquivo;
 import model.Record;
 import model.Tape;
+import util.ProgressBar;
 
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -152,7 +153,8 @@ public class RecordDAO extends AnimeDAO {
             RandomAccessFile[] files = new RandomAccessFile[caminhos * 2];
             int fileToBeRewriten = 0;
             int contador = 0;
-
+            ProgressBar progressBar = new ProgressBar("Teste" , this.qtdRegistros);
+            progressBar.startProcess();
             while (tamBloco < this.qtdRegistros) {
                 for (int i = 0; i < caminhos * 2; i++) {
                     files[i] = new RandomAccessFile(fileNames[i], "rw");
@@ -238,8 +240,10 @@ public class RecordDAO extends AnimeDAO {
                     }
 
                     contador++;
+                    progressBar.updateStatus(contador);
                 }/**FIM DE "while (contador < Math.ceil(((float) qtdRegistros / (tamBloco * caminhos))))"
                  *FAZ A INTERCALAÇÃO N VEZES */
+                progressBar.done();
 
 
                 tamBloco = tamBloco * caminhos;

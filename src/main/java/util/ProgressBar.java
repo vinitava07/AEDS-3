@@ -26,7 +26,6 @@ public class ProgressBar {
         System.out.print(builder);
         System.out.print("\r");
         System.out.flush();
-
     }
 
     public void done() {

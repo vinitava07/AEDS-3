@@ -441,6 +441,7 @@ public class AnimeDAO {
             lastId = raf.readInt();
             ProgressBar progressBar = new ProgressBar("Building B+ Tree", raf.length() - 4);
 
+            progressBar.startProcess();
             for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
                 raf.read(byteArray, 0, 4);
                 validRecord = isValidRecord(byteArray[0]);
@@ -689,6 +690,55 @@ public class AnimeDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean updateWithBPlus(int id , Anime anime , BPlusTreeDAO index) {
+        boolean status = false;
+        int recordLength;
+        boolean validRecord;
+        byte[] byteArray = new byte[4];
+        int recordId;
+        int newAnimeSize = anime.getByteLength();
+        Record r = new Record();
+        r.setAnime(anime);
+        long where = index.search(id);
+        if(where != -1) {
+            try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile , "rw")) {
+                raf.seek(where - 8);
+                raf.read(byteArray, 0, 4);
+                validRecord = isValidRecord(byteArray[0]);
+                recordLength = getRecordLength(byteArray, validRecord);
+                recordId = raf.readInt();
+                System.out.println("------ " + recordId + " ------- " + id + " -------");
+                r.setGraveyard(validRecord);
+                r.setSize(newAnimeSize);
+                r.setId(recordId);
+                r.setAnime(anime);
+                if (recordLength >= newAnimeSize) {
+                    System.out.println("menor");
+                    writeAnimeBytes(r, raf, true);
+                    //No need to update the Tree!!
+                } else {
+                    raf.seek(where - 8);
+                    changeGraveyard(raf, byteArray);
+
+                    long newPosition = raf.length() + 8; //The updated record will be at the end of the file + id(4) + length(4)
+                    if(index.updateElement(new PageElement(id , newPosition))) System.out.println("Anime successfully updated!!");
+                    else System.out.println("Failed to update Anime!!");
+
+//                    System.out.println("730: Where:" + where);
+//                    System.out.println("731: newPosition :" + newPosition);
+                    raf.seek(where);
+                    writeAnimeBytes(r, raf, false);
+                }
+                System.out.println("Registro atualizado!");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return status;
     }
 
 }
