@@ -1,6 +1,11 @@
 import dao.*;
 import model.Anime;
+import model.PageElement;
 
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Scanner;
 
 public class Main {
@@ -9,7 +14,12 @@ public class Main {
         System.out.println("BEM VINDO AO MENU DE AEDS 3");
         System.out.println("===============================================");
         menu();
-
+//
+//        ListaInvertidaDAO listaInvertidaDAO = new ListaInvertidaDAO("lista.bin", true);
+//        AnimeDAO animeDAO = new AnimeDAO("novoAnime.bin","ListaAnime.csv");
+//        animeDAO.csvToByte();
+////        animeDAO.criarListaInvertidaType(listaInvertidaDAO);
+//        listaInvertidaDAO.insertType("TV",2);
     }
 
     public static void menu() throws Exception {
@@ -62,6 +72,7 @@ public class Main {
         }
         boolean loop = true;
         int id = 0;
+        long pos = -1;
         int indexOption = -1;
         do {
             showMenu();
@@ -99,37 +110,63 @@ public class Main {
                         indexOption = indexMenu(sc);
                         switch (indexOption) {
                             case 1:
-                                animeDAO.removeAnimeWithBPlusTree(id, bPlusTreeDAO);
+                                pos = animeDAO.removeAnimeWithBPlusTree(id, bPlusTreeDAO);
+                                bPlusTreeDAO.deleteElement(id);
                                 break;
                             case 2:
-                                animeDAO.removeAnimeWithHash(id, dynamicHashingDAO);
+                                pos = animeDAO.removeAnimeWithHash(id, dynamicHashingDAO);
+                                dynamicHashingDAO.removeElement(id);
                                 break;
                             default:
                                 System.out.println("Invalido");
                                 break;
                         }
-                        id = lerOpcao(sc);
-                        animeDAO.removeAnime(id);
+                        animeDAO.removeListaInvertidaType(id, pos, listaInvertidaDAOType, bPlusTreeDAO);
+                        animeDAO.removeListaInvertidaStudio(id, pos, listaInvertidaDAOStudio, bPlusTreeDAO);
                         break;
                     case 4:
                         System.out.println("Inserindo Anime");
                         anime = lerAnime(sc);
-                        long pos = animeDAO.createAnime(anime);
+                        pos = animeDAO.createAnime(anime);
                         animeDAO.indexInsertInBplusTree(pos, bPlusTreeDAO);
                         animeDAO.indexInsertInHash(pos, dynamicHashingDAO);
+//                        listaInvertidaDAOType.insertType("TV", 500);
+
+                        listaInvertidaDAOType.insertType(anime.type.trim(), pos);
+                        listaInvertidaDAOStudio.insertStudio(anime.studio, pos);
+                        System.out.println("Anime inserido");
                         break;
                     case 5:
-                        System.out.println("Atualização sequencial - Arquivo não indexado");
-                        System.out.println("Digite o ID do anime a ser atualizado");
+                        System.out.println("Digite o ID do anime a ser Atualizado");
                         id = lerOpcao(sc);
                         anime = lerAnime(sc);
+                        indexOption = indexMenu(sc);
                         animeDAO.updateRecord(id, anime);
+                        long oldPointer = bPlusTreeDAO.search(id);
+                        PageElement e = null;
+                        switch (indexOption) {
+                            case 1:
+                                pos = animeDAO.updateWithBPlus(id, anime, bPlusTreeDAO);
+                                e = new PageElement(id, pos);
+                                dynamicHashingDAO.updateElement(e);
+                                break;
+                            case 2:
+//                                animeDAO.updateWithHash
+                                e = new PageElement(id, pos);
+                                bPlusTreeDAO.updateElement(e);
+                                break;
+                            default:
+                                System.out.println("Invalido");
+                                break;
+                        }
+                        listaInvertidaDAOType.updateIndex(anime.type, oldPointer, pos - 8);
+                        listaInvertidaDAOStudio.updateIndex(anime.type, oldPointer, pos - 8);
                         break;
                     case 6:
-                        id = lerOpcao(sc);
+                        System.out.println("Buscar animes por type");
                         break;
                     case 7:
-                        id = lerOpcao(sc);
+                        System.out.println("Buscar anime por studio");
                         break;
                     case 8:
                         RecordDAO recordDAO = new RecordDAO(nomeBin);
@@ -155,7 +192,9 @@ public class Main {
                 switch (opMenu) {
                     case 1:
                         System.out.println("Busca sequencial - Arquivo não indexado");
+                        System.out.println("Digite o ID a ser buscado");
                         id = lerOpcao(sc);
+                        System.out.println(id);
                         anime = animeDAO.searchAnimeById(id);
                         if (anime != null) {
                             anime.printAttributes();
@@ -226,6 +265,7 @@ public class Main {
         String dynamicHash = nomeArquivo + "dynamicH.bin";
         System.out.println("Digite a ordem da árvore: ");
         BPlusTreeDAO bPlusTreeDAO = new BPlusTreeDAO(BPlusTreeName, lerOpcao(sc));
+        System.out.println("Criando listas invertidas");
         ListaInvertidaDAO listaInvertidaDAOType = new ListaInvertidaDAO(listaInvertidaTipo, true);
         ListaInvertidaDAO listaInvertidaDAOStudio = new ListaInvertidaDAO(listaInvertidaStudio, true);
         DynamicHashingDAO dynamicHashingDAO = new DynamicHashingDAO(dynamicHash, true);
@@ -262,11 +302,11 @@ public class Main {
     public static int lerOpcao(Scanner sc) {
 
         int saida = -1;
-        char op = sc.nextLine().charAt(0);
+        String op = sc.nextLine();
 //        if (sc.hasNext()) {
 //            sc.nextLine();
 //        }
-        saida = Character.getNumericValue(op);
+        saida = Integer.parseInt(op);
         return saida;
 
     }
@@ -287,8 +327,9 @@ public class Main {
         return option;
     }
 
-    public static Anime lerAnime(Scanner sc) {
+    public static Anime lerAnime(Scanner sc) throws ParseException {
         Anime a = new Anime();
+        Timestamp t;
         System.out.println("Digite o nome do Anime");
         a.name = sc.nextLine();
         System.out.println("Digite o Type do Anime");
@@ -302,7 +343,10 @@ public class Main {
         System.out.println("Digite o rating do anime");
         a.rating = Float.parseFloat(sc.nextLine());
         System.out.println("Digite o ano do anime");
-        a.release_year = a.longToTimestamp(Long.parseLong(sc.nextLine()));
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy");
+        Date parsedDate = dateFormat.parse(sc.nextLine().replace(".0", ""));
+        t = new java.sql.Timestamp(parsedDate.getTime());
+        a.release_year = t;
         return a;
     }
 

@@ -22,8 +22,8 @@ public class ListaInvertidaDAO {
         if (file.exists()) {
             file.delete();
         }
-        this.arquivo = new Arquivo(fileName);
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "rw")) {
+        this.arquivo = new Arquivo("../resources/" + fileName);
+        try (RandomAccessFile raf = new RandomAccessFile("../resources/" + this.arquivo.mainFile, "rw")) {
             this.listaIndices = new ArrayList<>();
             qtdIndex = 0;
             raf.writeInt(qtdIndex);
@@ -35,9 +35,10 @@ public class ListaInvertidaDAO {
     }
 
     public ListaInvertidaDAO(String fileName) {
-        try (RandomAccessFile raf = new RandomAccessFile(fileName, "rw")) {
+
+        try (RandomAccessFile raf = new RandomAccessFile("../resources/" + fileName, "rw")) {
             this.qtdIndex = raf.readInt();
-            this.arquivo = new Arquivo(fileName);
+            this.arquivo = new Arquivo("../resources/" + fileName);
             listaIndices = new ArrayList<>();
             for (int i = 0; i < qtdIndex; i++) {
                 listaIndices.add(raf.readUTF().trim());
@@ -69,16 +70,17 @@ public class ListaInvertidaDAO {
             for (int i = 0; i < qtdTypes; i++) {
                 raf.readUTF();
             }
+            System.out.println("AQUIII" + raf.getFilePointer());
             for (int i = 0; i < qtdTypes && !found; i++) {
                 filePointerBefore = raf.getFilePointer();
                 isGraveyard = raf.readBoolean();
                 listaInvertida.setGraveyard(isGraveyard);
                 if (!isGraveyard) {
-                    System.out.println("passou por um elemento vivo");
+
                     listaInvertida = getListaInvertida(raf);
                 }
                 if (type.equals(listaInvertida.getElement())) {
-                    System.out.println("o type ja existe");
+
                     found = true;
                     raf.seek(filePointerBefore);
                     raf.writeBoolean(true);
@@ -90,7 +92,7 @@ public class ListaInvertidaDAO {
 
             }
             if (!found) {
-                System.out.println("nao existe, vai ser criado");
+
                 listaInvertida.setElement(type);
                 listaInvertida.addPointer(0, animePointer);
                 listaInvertida.setQtdPointers(1);
@@ -124,11 +126,10 @@ public class ListaInvertidaDAO {
                 isGraveyard = raf.readBoolean();
                 listaInvertida.setGraveyard(isGraveyard);
                 if (!isGraveyard) {
-                    System.out.println("passou por um elemento vivo");
                     listaInvertida = getListaInvertida(raf);
                 }
                 if (studio.equals(listaInvertida.getElement())) {
-                    System.out.println("o type ja existe");
+
                     found = true;
                     raf.seek(filePointerBefore);
                     raf.writeBoolean(true);
@@ -176,6 +177,7 @@ public class ListaInvertidaDAO {
         ListaInvertida listaInvertida = new ListaInvertida();
         try {
             long originalFP = raf.getFilePointer();
+
             listaInvertida.setQtdPointers(raf.readInt());
             listaInvertida.setElement(raf.readUTF());
 
