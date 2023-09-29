@@ -37,8 +37,8 @@ public class ProgressBar {
 
     public void done() {
         this.timer.stop();
-        System.out.println("[####################################################################################################]100% " + this.processName + " done!! -- took: ");
-        System.out.printf("%.2f s\n" , this.timer.getTime());
+        System.out.print("[####################################################################################################]100% " + this.processName + " done!! -- took: ");
+        System.out.printf("%.2f s\n\n" , this.timer.getTime());
     }
 
     public void printErrorMessage() {
