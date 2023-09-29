@@ -143,6 +143,7 @@ public class Main {
                         indexOption = indexMenu(sc);
                         animeDAO.updateRecord(id, anime);
                         long oldPointer = bPlusTreeDAO.search(id);
+                        System.out.println(oldPointer);
                         PageElement e = null;
                         switch (indexOption) {
                             case 1:
@@ -159,14 +160,16 @@ public class Main {
                                 System.out.println("Invalido");
                                 break;
                         }
-                        listaInvertidaDAOType.updateIndex(anime.type, oldPointer, pos - 8);
-                        listaInvertidaDAOStudio.updateIndex(anime.type, oldPointer, pos - 8);
+                        listaInvertidaDAOType.updateIndex(anime.type, oldPointer-8, pos - 8);
+                        listaInvertidaDAOStudio.updateIndex(anime.studio, oldPointer-8, pos - 8);
                         break;
                     case 6:
                         System.out.println("Buscar animes por type");
+                        listaInvertidaDAOType.printIndex(animeDAO);
                         break;
                     case 7:
                         System.out.println("Buscar anime por studio");
+                        listaInvertidaDAOStudio.printIndex(animeDAO);
                         break;
                     case 8:
                         RecordDAO recordDAO = new RecordDAO(nomeBin);

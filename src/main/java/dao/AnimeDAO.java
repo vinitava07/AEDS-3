@@ -88,6 +88,7 @@ public class AnimeDAO {
         int length = r.getAnime().getByteLength();
         int lastId = -1;
         if (update) {
+            res = raf.getFilePointer();
             raf.writeUTF(r.getAnime().name);
             byte[] type = new byte[5]; // write r.getAnime() type
             for (int j = 0; j < r.getAnime().type.length(); j++) {
@@ -478,7 +479,7 @@ public class AnimeDAO {
 
         try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
             int id = raf.readInt();
-            indexFile.insertElement(id, pos);
+            indexFile.insertElement(id, pos + 8);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -703,7 +704,7 @@ public class AnimeDAO {
     public void removeListaInvertidaType(int id, long pos, ListaInvertidaDAO listaInvertidaDAO, BPlusTreeDAO index) {
 
         try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
-            raf.seek(pos+8);
+            raf.seek(pos + 8);
             Anime a = getAnime(raf);
             listaInvertidaDAO.deleteIndice(a.type, pos);
         } catch (Exception e) {
@@ -711,10 +712,11 @@ public class AnimeDAO {
         }
 
     }
+
     public void removeListaInvertidaStudio(int id, long pos, ListaInvertidaDAO listaInvertidaDAO, BPlusTreeDAO index) {
 
         try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
-            raf.seek(pos+8);
+            raf.seek(pos + 8);
             Anime a = getAnime(raf);
             listaInvertidaDAO.deleteIndice(a.studio, pos);
         } catch (Exception e) {
@@ -755,7 +757,7 @@ public class AnimeDAO {
                     raf.seek(where - 8);
                     changeGraveyard(raf, byteArray);
 
-                     newPosition = raf.length() + 8; //The updated record will be at the end of the file + id(4) + length(4)
+                    newPosition = raf.length() + 8; //The updated record will be at the end of the file + id(4) + length(4)
                     if (index.updateElement(new PageElement(id, newPosition)))
                         System.out.println("Anime successfully updated!!");
                     else System.out.println("Failed to update Anime!!");
