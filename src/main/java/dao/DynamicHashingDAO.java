@@ -145,7 +145,7 @@ public class DynamicHashingDAO {
         try {
             if(element.getId() < 0) throw new NoSuchElementException("Invalid ID! There can not exists an negative ID!");
             DataBucketDAO bucketDAO = searchBucket(element.getId());
-            if(bucketDAO.bucket.updateElement(element) == false) throw new EmptyStackException();
+            if(bucketDAO.bucket.updateElement(element) == false) throw new Exception("Element not found!!");
             RandomAccessFile raf = new RandomAccessFile(this.file.mainFile , "rw");
             bucketDAO.overWrite(raf);
             raf.close();

@@ -141,14 +141,14 @@ public class Main {
                         id = lerOpcao(sc);
                         anime = lerAnime(sc);
                         indexOption = indexMenu(sc);
-                        animeDAO.updateRecord(id, anime);
+//                        animeDAO.updateRecord(id, anime);
                         long oldPointer = bPlusTreeDAO.search(id);
                         System.out.println(oldPointer);
                         PageElement e = null;
                         switch (indexOption) {
                             case 1:
                                 pos = animeDAO.updateWithBPlus(id, anime, bPlusTreeDAO);
-                                e = new PageElement(id, pos);
+                                e = new PageElement(id, pos - 8);
                                 dynamicHashingDAO.updateElement(e);
                                 break;
                             case 2:
@@ -178,6 +178,8 @@ public class Main {
                         System.out.println("Digite o tamanho do bloco");
                         int blocos = lerOpcao(sc);
                         op = 2;
+                        recordDAO.intercalacaoBalanceada(caminhos , blocos);
+                        break;
                     case 9:
                         indexarAnimes(nomeArquivo, animeDAO, sc);
                         bPlusTreeDAO = new BPlusTreeDAO(BPlusTreeName);

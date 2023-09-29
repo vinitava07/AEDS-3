@@ -62,6 +62,7 @@ public class AnimeDAO {
             anime = new Anime();
             ProgressBar progressBar = new ProgressBar("Building Bin FILE", 10000L);
 
+            progressBar.startProcess();
             while (contador < 1000) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
@@ -450,6 +451,7 @@ public class AnimeDAO {
                 byte[] byteArray = new byte[4];
                 raf.seek(4);
                 ProgressBar progressBar = new ProgressBar("Building Hash", raf.length() - 4);
+                progressBar.startProcess();
                 for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
                     long dataFilePosition = raf.getFilePointer();
                     raf.read(byteArray, 0, 4);
@@ -598,7 +600,7 @@ public class AnimeDAO {
             listFile.writeIndices(listaRaf);
             animeRaf.seek(4);
             ProgressBar progressBar = new ProgressBar("Building Lista Invertida Type", types.size());
-
+            progressBar.startProcess();
             for (int j = 0; j < types.size(); j++) {
 
                 for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
@@ -670,6 +672,7 @@ public class AnimeDAO {
             listFile.writeIndices(listaRaf);
             animeRaf.seek(4);
             ProgressBar progressBar = new ProgressBar("Building Lista invertida Studio", studios.size());
+            progressBar.startProcess();
             for (int j = 0; j < studios.size(); j++) {
                 for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
                     recordPointer = animeRaf.getFilePointer();
