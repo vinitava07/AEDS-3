@@ -4,15 +4,18 @@ public class ProgressBar {
     private final String processName;
     private double hundredPerCent;
     private Timer timer;
+    private boolean staticProcess;
 
     public ProgressBar(String processName, double hundredPerCent) {
         this.processName = processName;
+        staticProcess = hundredPerCent < 0;
         this.hundredPerCent = hundredPerCent;
         this.timer = new Timer();
     }
 
     public void startProcess() {
-        System.out.println("\nWorking on: " + this.processName);
+        if(staticProcess) System.out.print("\nWorking on: " + this.processName);
+        else System.out.println("\nWorking on: " + this.processName);
         this.timer.start();
     }
 
@@ -25,7 +28,7 @@ public class ProgressBar {
             if (i <= xPerCent) builder.insert(i + 1, '#');
             else builder.insert(i + 1, ' ');
         }
-        builder.append(String.format("%.2f%%", xPerCent));
+        builder.append(String.format("%.2f%% -- time: %.2f", xPerCent , this.timer.getCurrentTime()));
         System.out.print(builder);
         System.out.print("\r");
         System.out.flush();
@@ -37,8 +40,15 @@ public class ProgressBar {
 
     public void done() {
         this.timer.stop();
-        System.out.print("[####################################################################################################]100% " + this.processName + " done!! -- took: ");
-        System.out.printf("%.2f s\n\n" , this.timer.getTime());
+        System.out.print("[####################################################################################################]100% " + this.processName + " done!! ==> ");
+        printTime();
+    }
+
+    public void printTime() {
+        if(staticProcess) {
+            this.timer.stop();
+            System.out.printf(" ==> done! took: %.3fs\n" , this.timer.getTime());
+        } else System.out.printf("took: %.3fs\n\n" , this.timer.getTime());
     }
 
     public void printErrorMessage() {

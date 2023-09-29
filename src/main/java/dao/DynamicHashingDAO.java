@@ -170,7 +170,7 @@ public class DynamicHashingDAO {
             DataBucketDAO bucketDAO = searchBucket(id);
             result = bucketDAO.bucket.search(id);
             if(result == null) throw new NoSuchElementException("ID: " + id + " not found!");
-            System.out.println(result.getId() + " -- " + result.getPointer());
+//            System.out.println(result.getId() + " -- " + result.getPointer());
 //            bucketDAO.bucket.print();
         }catch (Exception e) {
             e.printStackTrace();

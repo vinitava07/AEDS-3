@@ -54,7 +54,7 @@ public class AnimeDAO {
             System.out.println("Arquivo recriado!");
             bin.delete();
         }
-        ProgressBar progressBar = new ProgressBar("Building Bin FILE", 18495L);
+        ProgressBar progressBar = new ProgressBar("Building Bin FILE", 1000L);
         try {
             RandomAccessFile csvFile = new RandomAccessFile(csv, "r");
             RandomAccessFile binFile = new RandomAccessFile(bin, "rw");
@@ -63,7 +63,8 @@ public class AnimeDAO {
             anime = new Anime();
 
             progressBar.startProcess();
-            while ((animeText = csvFile.readLine()) != null) {
+            while (contador < 1000) {
+                animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 r.setAnime(anime);
                 // System.out.println(animeText);
@@ -234,7 +235,7 @@ public class AnimeDAO {
                         if (animeID == id) {
                             found = true;
                             result = getAnime(raf);
-                            System.out.println("Registro econtrado!");
+//                            System.out.println("Registro econtrado!");
 
                         }
                     }

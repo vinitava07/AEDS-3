@@ -1,6 +1,7 @@
 import dao.*;
 import model.Anime;
 import model.PageElement;
+import util.ProgressBar;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -83,12 +84,17 @@ public class Main {
                         System.out.println("Digite o ID buscado");
                         id = lerOpcao(sc);
                         indexOption = indexMenu(sc);
+                        ProgressBar searchProgress = new ProgressBar(("Searching id: " + id) , -1);
                         switch (indexOption) {
                             case 1:
+                                searchProgress.startProcess();
                                 anime = animeDAO.indexSearchInBPlusTree(id, bPlusTreeDAO);
+                                searchProgress.printTime();
                                 break;
                             case 2:
+                                searchProgress.startProcess();
                                 anime = animeDAO.indexSearchInHash(id, dynamicHashingDAO);
+                                searchProgress.printTime();
                                 break;
                             default:
                                 System.out.println("Invalido");
@@ -102,18 +108,24 @@ public class Main {
                         }
                         break;
                     case 2:
+                        ProgressBar printProgress = new ProgressBar("Printing" , -1);
+                        printProgress.startProcess();
                         animeDAO.printAllAnime();
+                        printProgress.printTime();
                         break;
                     case 3:
                         System.out.println("Digite o ID do anime a ser apagado");
                         id = lerOpcao(sc);
                         indexOption = indexMenu(sc);
+                        ProgressBar deleteProgress = new ProgressBar("Deleting" , -1);
                         switch (indexOption) {
                             case 1:
+                                deleteProgress.startProcess();
                                 pos = animeDAO.removeAnimeWithBPlusTree(id, bPlusTreeDAO);
                                 bPlusTreeDAO.deleteElement(id);
                                 break;
                             case 2:
+                                deleteProgress.startProcess();
                                 pos = animeDAO.removeAnimeWithHash(id, dynamicHashingDAO);
                                 dynamicHashingDAO.removeElement(id);
                                 break;
@@ -123,6 +135,7 @@ public class Main {
                         }
                         animeDAO.removeListaInvertidaType(id, pos, listaInvertidaDAOType, bPlusTreeDAO);
                         animeDAO.removeListaInvertidaStudio(id, pos, listaInvertidaDAOStudio, bPlusTreeDAO);
+                        deleteProgress.printTime();
                         break;
                     case 4:
                         System.out.println("Inserindo Anime");
@@ -199,8 +212,11 @@ public class Main {
                         System.out.println("Busca sequencial - Arquivo não indexado");
                         System.out.println("Digite o ID a ser buscado");
                         id = lerOpcao(sc);
-                        System.out.println(id);
+//                        System.out.println(id);
+                        ProgressBar searchProgress = new ProgressBar(("Search id: " + id) , -1);
+                        searchProgress.startProcess();
                         anime = animeDAO.searchAnimeById(id);
+                        searchProgress.printTime();
                         if (anime != null) {
                             anime.printAttributes();
                         } else {
@@ -267,7 +283,7 @@ public class Main {
         String BPlusTreeName = nomeArquivo + "Bplus.bin";
         String listaInvertidaTipo = nomeArquivo + "ListaTipo.bin";
         String listaInvertidaStudio = nomeArquivo + "ListaStudio.bin";
-        String dynamicHash = nomeArquivo + "dynamicH.bin";
+        String dynamicHash = nomeArquivo + "DynamicHash.bin";
         System.out.println("Digite a ordem da árvore: ");
         BPlusTreeDAO bPlusTreeDAO = new BPlusTreeDAO(BPlusTreeName, lerOpcao(sc));
         System.out.println("Criando listas invertidas");
