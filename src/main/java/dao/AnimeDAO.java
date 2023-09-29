@@ -54,17 +54,16 @@ public class AnimeDAO {
             System.out.println("Arquivo recriado!");
             bin.delete();
         }
+        ProgressBar progressBar = new ProgressBar("Building Bin FILE", 18495L);
         try {
             RandomAccessFile csvFile = new RandomAccessFile(csv, "r");
             RandomAccessFile binFile = new RandomAccessFile(bin, "rw");
 
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-            ProgressBar progressBar = new ProgressBar("Building Bin FILE", 10000L);
 
             progressBar.startProcess();
-            while (contador < 1000) {
-                animeText = csvFile.readLine();
+            while ((animeText = csvFile.readLine()) != null) {
                 anime.parseAnime(animeText);
                 r.setAnime(anime);
                 // System.out.println(animeText);
@@ -79,7 +78,7 @@ public class AnimeDAO {
             binFile.close();
 
         } catch (Exception e) {
-
+            progressBar.printErrorMessage(e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -162,7 +161,7 @@ public class AnimeDAO {
             raf.seek(0);
             int id = 0;
             lastId = raf.readInt();
-            System.out.println("Ultimo id: " + lastId);
+//            System.out.println("Ultimo id: " + lastId);
             for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
                 raf.read(byteArray, 0, 4);
                 validRecord = isValidRecord(byteArray[0]);
@@ -170,7 +169,7 @@ public class AnimeDAO {
                 long filePointer = raf.getFilePointer();
                 if (validRecord) {
                     id = raf.readInt();
-                    System.out.println("ID: " + id);
+//                    System.out.println("ID: " + id);
                     Anime anime = getAnime(raf);
                     anime.printAttributes();
                     raf.seek(filePointer + recordLength);
@@ -371,7 +370,7 @@ public class AnimeDAO {
                             r.setId(recordId);
                             r.setAnime(a);
                             if (recordLength >= newAnimeSize) {
-                                System.out.println("menor");
+//                                System.out.println("menor");
                                 writeAnimeBytes(r, raf, true);
 
                             } else {
@@ -404,6 +403,7 @@ public class AnimeDAO {
 
 
         File file = new File(this.arquivo.mainFile);
+        ProgressBar progressBar = new ProgressBar("Building B+ Tree", 0);
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             int lastId = 0;
             int recordLength;
@@ -411,8 +411,8 @@ public class AnimeDAO {
             byte[] byteArray = new byte[4];
             raf.seek(0);
             lastId = raf.readInt();
-            ProgressBar progressBar = new ProgressBar("Building B+ Tree", raf.length() - 4);
 
+            progressBar.setHundredPerCent(raf.length() - 4);
             progressBar.startProcess();
             for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
                 raf.read(byteArray, 0, 4);
@@ -433,7 +433,7 @@ public class AnimeDAO {
             progressBar.done();
             raf.close();
         } catch (Exception e) {
-
+            progressBar.printErrorMessage(e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -445,12 +445,13 @@ public class AnimeDAO {
                 if (index.create()) System.out.println("Hash successfully recreated!!");
             }
             File file = new File(this.arquivo.mainFile);
+            ProgressBar progressBar = new ProgressBar("Building Hash", 0);
             try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
                 int recordLength;
                 boolean validRecord;
                 byte[] byteArray = new byte[4];
                 raf.seek(4);
-                ProgressBar progressBar = new ProgressBar("Building Hash", raf.length() - 4);
+                progressBar.setHundredPerCent(raf.length() - 4);
                 progressBar.startProcess();
                 for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
                     long dataFilePosition = raf.getFilePointer();
@@ -470,6 +471,7 @@ public class AnimeDAO {
                 progressBar.done();
                 raf.close();
             } catch (Exception e) {
+                progressBar.printErrorMessage(e.getLocalizedMessage());
                 e.printStackTrace();
             }
         } catch (Exception e) {
@@ -489,6 +491,7 @@ public class AnimeDAO {
 
     public Anime indexSearchInBPlusTree(int id, BPlusTreeDAO indexFile) {
         long pointer = indexFile.search(id);
+//        System.out.println("B+: " + pointer);
         Anime result = null;
         try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
             if (pointer > 0) {
@@ -531,6 +534,7 @@ public class AnimeDAO {
 
     public Anime indexSearchInHash(int id, DynamicHashingDAO index) {
         long pointer = index.search(id);
+//        System.out.println("Hash: " + pointer);
         Anime result = null;
         try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
             if (pointer > 0) {
@@ -567,6 +571,7 @@ public class AnimeDAO {
     public ArrayList<String> criarListaInvertidaType(ListaInvertidaDAO listFile) {
         boolean result = true;
         ArrayList<String> types = new ArrayList<>();
+        ProgressBar progressBar = new ProgressBar("Building Lista Invertida Type", 0);
         try {
             RandomAccessFile animeRaf = new RandomAccessFile(this.arquivo.mainFile, "rw");
             RandomAccessFile listaRaf = new RandomAccessFile(listFile.arquivo.mainFile, "rw");
@@ -599,7 +604,8 @@ public class AnimeDAO {
             listFile.listaIndices = types;
             listFile.writeIndices(listaRaf);
             animeRaf.seek(4);
-            ProgressBar progressBar = new ProgressBar("Building Lista Invertida Type", types.size());
+
+            progressBar.setHundredPerCent(types.size());
             progressBar.startProcess();
             for (int j = 0; j < types.size(); j++) {
 
@@ -630,6 +636,7 @@ public class AnimeDAO {
             }
             progressBar.done();
         } catch (Exception e) {
+            progressBar.printErrorMessage(e.getLocalizedMessage());
             e.printStackTrace();
         }
         return types;
@@ -638,6 +645,7 @@ public class AnimeDAO {
     public void criarListaInvertidaStudio(ListaInvertidaDAO listFile) {
         boolean result = true;
         ArrayList<String> studios = new ArrayList<>();
+        ProgressBar progressBar = new ProgressBar("Building Lista invertida Studio", 0);
         try {
             RandomAccessFile animeRaf = new RandomAccessFile(this.arquivo.mainFile, "rw");
             RandomAccessFile listaRaf = new RandomAccessFile(listFile.arquivo.mainFile, "rw");
@@ -671,7 +679,8 @@ public class AnimeDAO {
             listFile.listaIndices = studios;
             listFile.writeIndices(listaRaf);
             animeRaf.seek(4);
-            ProgressBar progressBar = new ProgressBar("Building Lista invertida Studio", studios.size());
+
+            progressBar.setHundredPerCent(studios.size());
             progressBar.startProcess();
             for (int j = 0; j < studios.size(); j++) {
                 for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
@@ -700,6 +709,7 @@ public class AnimeDAO {
             }
             progressBar.done();
         } catch (Exception e) {
+            progressBar.printErrorMessage(e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -747,13 +757,13 @@ public class AnimeDAO {
                 validRecord = isValidRecord(byteArray[0]);
                 recordLength = getRecordLength(byteArray, validRecord);
                 recordId = raf.readInt();
-                System.out.println("------ " + recordId + " ------- " + id + " -------");
+//                System.out.println("------ " + recordId + " ------- " + id + " -------");
                 r.setGraveyard(validRecord);
                 r.setSize(newAnimeSize);
                 r.setId(recordId);
                 r.setAnime(anime);
                 if (recordLength >= newAnimeSize) {
-                    System.out.println("menor");
+//                    System.out.println("menor");
                     writeAnimeBytes(r, raf, true);
                     //No need to update the Tree!!
                 } else {
@@ -770,7 +780,7 @@ public class AnimeDAO {
                     raf.seek(where);
                     writeAnimeBytes(r, raf, false);
                 }
-                System.out.println("Registro atualizado!");
+//                System.out.println("Registro atualizado!");
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -780,4 +790,54 @@ public class AnimeDAO {
         return newPosition;
     }
 
+    public long updateWithDynamicHash(int id, Anime anime, DynamicHashingDAO index) {
+        boolean status = false;
+        int recordLength;
+        boolean validRecord;
+        byte[] byteArray = new byte[4];
+        int recordId;
+        int newAnimeSize = anime.getByteLength();
+        Record r = new Record();
+        r.setAnime(anime);
+        long where = index.search(id);
+//        System.out.println(where);
+        long newPosition = where + 8;
+        if (where != -1) {
+            try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
+                raf.seek(where);
+                raf.read(byteArray, 0, 4);
+                validRecord = isValidRecord(byteArray[0]);
+                recordLength = getRecordLength(byteArray, validRecord);
+                recordId = raf.readInt();
+                r.setGraveyard(validRecord);
+                r.setSize(newAnimeSize);
+                r.setId(recordId);
+                r.setAnime(anime);
+                if (recordLength >= newAnimeSize) {
+//                    System.out.println("menor");
+                    writeAnimeBytes(r, raf, true);
+                    //No need to update the Tree!!
+                } else {
+                    raf.seek(where);
+                    changeGraveyard(raf, byteArray);
+
+                    newPosition = raf.length() + 8; //The updated record will be at the end of the file + id(4) + length(4)
+                    if (index.updateElement(new PageElement(id, newPosition - 8)))
+                        System.out.println("Anime successfully updated!!");
+                    else System.out.println("Failed to update Anime!!");
+
+//                    System.out.println("730: Where:" + where);
+//                    System.out.println("731: newPosition :" + newPosition);
+                    raf.seek(where);
+                    writeAnimeBytes(r, raf, false);
+                }
+//                System.out.println("Registro atualizado!");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        return newPosition;
+    }
 }

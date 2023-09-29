@@ -58,7 +58,7 @@ public class Main {
         String BPlusTreeName = nomeArquivo + "Bplus.bin";
         String listaInvertidaTipo = nomeArquivo + "ListaTipo.bin";
         String listaInvertidaStudio = nomeArquivo + "ListaStudio.bin";
-        String dynamicHash = nomeArquivo + "dynamicH.bin";
+        String dynamicHash = nomeArquivo + "DynamicHash.bin";
         BPlusTreeDAO bPlusTreeDAO = null;
         ListaInvertidaDAO listaInvertidaDAOType = null;
         ListaInvertidaDAO listaInvertidaDAOStudio = null;
@@ -152,7 +152,7 @@ public class Main {
                                 dynamicHashingDAO.updateElement(e);
                                 break;
                             case 2:
-//                                animeDAO.updateWithHash
+                                pos = animeDAO.updateWithDynamicHash(id , anime , dynamicHashingDAO);
                                 e = new PageElement(id, pos);
                                 bPlusTreeDAO.updateElement(e);
                                 break;

@@ -2,15 +2,18 @@ package util;
 
 public class ProgressBar {
     private final String processName;
-    private final double hundredPerCent;
+    private double hundredPerCent;
+    private Timer timer;
 
     public ProgressBar(String processName, double hundredPerCent) {
         this.processName = processName;
         this.hundredPerCent = hundredPerCent;
+        this.timer = new Timer();
     }
 
     public void startProcess() {
         System.out.println("\nWorking on: " + this.processName);
+        this.timer.start();
     }
 
     public void updateStatus(double doneAmount) {
@@ -28,7 +31,20 @@ public class ProgressBar {
         System.out.flush();
     }
 
+    public void setHundredPerCent(double hundredPerCent) {
+        this.hundredPerCent = hundredPerCent;
+    }
+
     public void done() {
-        System.out.println("[####################################################################################################]100% " + this.processName + " done!!\n");
+        this.timer.stop();
+        System.out.println("[####################################################################################################]100% " + this.processName + " done!! -- took: ");
+        System.out.printf("%.2f s\n" , this.timer.getTime());
+    }
+
+    public void printErrorMessage() {
+        System.out.println("\nAn error occurred and could not finish " + this.processName);
+    }
+    public void printErrorMessage(String error) {
+        System.out.println("\nThe error: \"" + error + "\" occurred.");
     }
 }
