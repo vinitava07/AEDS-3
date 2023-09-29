@@ -15,8 +15,10 @@ public class Menu {
     private static JPanel cards;
     private static CardLayout cardLayout;
 
+    private static SwingWorker<Void, Integer> worker;
+
     public static void main(String[] args) {
-        ProgressBar.init("" , 0);
+        Task.init();
 
         JFrame frame = new JFrame("Minha GUI de Animes");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -65,43 +67,51 @@ public class Menu {
     }
 
     private static JPanel criarTelaInicial() {
-        JPanel tela = new JPanel();
+        JPanel screen = new JPanel();
         JButton initButton = new JButton("LOAD DATA");
         initButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                // Create a SwingWorker to simulate a task
 
-                try {
-                    AnimeDAO animeDAO = new AnimeDAO("animeBin.bin" , "ListaAnime.csv");
-                    tela.add(ProgressBar.getProgressBar() , BorderLayout.CENTER);
-                    ProgressBar.setProcess("CSV to Byte" , 18494);
-                    tela.revalidate();
-                    animeDAO.csvToByte();
+                Task.createTask("CSV to Bye" , 10000);
+                AnimeDAO animeDAO = new AnimeDAO("animeBin.bin" , "ListaAnime.csv");
+                worker = new SwingWorker<Void, Integer>() {
+                    ProgressMonitor progressMonitor = new ProgressMonitor(screen,
+                            Task.getTaskName(),
+                            "Working on it...",
+                            0, Task.getTaskLength());
+                    @Override
+                    protected Void doInBackground() throws Exception {
 
-//                    RandomAccessFile raf = new RandomAccessFile(animeDAO.arquivo.mainFile , "r");
-//                    long length = raf.length();
-//                    raf.close();
-//
-//                    BPlusTreeDAO bPlusTreeDAO = new BPlusTreeDAO("animeBin.bin" , 8);
-//                    DynamicHashingDAO dynamicHashingDAO = new DynamicHashingDAO("animeBin.bin" , true);
-//                    ProgressBar.setProcess("B+Tree index" , length - 4);
-//                    tela.revalidate();
-//                    animeDAO.buildIndexFile(bPlusTreeDAO);
-//                    ProgressBar.setProcess("Dynamic Hash index" , length - 4);
-//                    tela.revalidate();
-//                    animeDAO.buildIndexFile(dynamicHashingDAO);
-//                    Thread.sleep(1);
-                    tela.remove(ProgressBar.getProgressBar());
-                    tela.revalidate();
-                    tela.repaint();
-                } catch (Exception exception) {
-                    exception.printStackTrace();
-                }
+//                        while (!progressMonitor.isCanceled()) {
+//                            publish(Task.progress);
+//                            Task.progress++;
+//                            Thread.sleep(1);
+//                        }
+                        animeDAO.csvToByte();
+
+                        progressMonitor.close();
+                        Task.endTask();
+                        return null;
+                    }
+
+
+                    @Override
+                    protected void process(java.util.List<Integer> chunks) {
+                        // Update the progress bar in the Event Dispatch Thread
+                        int progressValue = chunks.get(chunks.size() - 1);
+                        progressMonitor.setProgress(progressValue);
+                    }
+                };
+
+                worker.execute(); // Start the SwingWorker
             }
         });
-        tela.add(initButton, BorderLayout.NORTH);
-        tela.setBackground(new Color(116, 146, 206));
-        return tela;
+        screen.add(initButton, BorderLayout.NORTH);
+        screen.setBackground(new Color(116, 146, 206));
+        return screen;
     }
+
 
     private static JPanel criarTela(String titulo) {
         JPanel tela = new JPanel();

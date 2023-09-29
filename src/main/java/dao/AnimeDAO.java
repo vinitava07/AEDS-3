@@ -13,6 +13,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
+import menu.Menu;
+import menu.Task;
 import util.ProgressBar;
 import model.*;
 import model.Record;
@@ -57,19 +59,19 @@ public class AnimeDAO {
 
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-            ProgressBar progressBar = new ProgressBar("CSV to Byte" , 18494);
-            progressBar.startProcess();
-            while (contador < 18495) {
+//            ProgressBar progressBar = new ProgressBar("CSV to Byte" , 10000);
+//            progressBar.startProcess();
+            while (contador < 10000) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 r.setAnime(anime);
                 // System.out.println(animeText);
                 // anime.printAttributes();
                 writeAnimeBytes(r, binFile, false);
-                progressBar.updateStatus(r.getId());
+//                progressBar.updateStatus(r.getId());
                 contador++;
             }
-            progressBar.done();
+//            progressBar.done();
             csvFile.close();
             binFile.close();
 
