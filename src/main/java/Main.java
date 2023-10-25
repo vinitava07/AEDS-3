@@ -1,5 +1,6 @@
 import dao.*;
 import model.Anime;
+import model.Huffman;
 import model.PageElement;
 import util.ProgressBar;
 
