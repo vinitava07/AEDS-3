@@ -39,8 +39,9 @@ public class ProgressBar {
     }
 
     public void done() {
+        if(!staticProcess)
+            System.out.print("[####################################################################################################]100% " + this.processName + " done!! ==> ");
         this.timer.stop();
-        System.out.print("[####################################################################################################]100% " + this.processName + " done!! ==> ");
         printTime();
     }
 
