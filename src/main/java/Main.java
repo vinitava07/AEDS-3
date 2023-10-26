@@ -1,9 +1,8 @@
 import dao.*;
-import model.Anime;
-import model.Huffman;
-import model.PageElement;
+import model.*;
 import util.ProgressBar;
 
+import java.io.RandomAccessFile;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -15,13 +14,34 @@ public class Main {
 
         System.out.println("BEM VINDO AO MENU DE AEDS 3");
         System.out.println("===============================================");
-        menu();
-//
-//        ListaInvertidaDAO listaInvertidaDAO = new ListaInvertidaDAO("lista.bin", true);
-//        AnimeDAO animeDAO = new AnimeDAO("novoAnime.bin","ListaAnime.csv");
-//        animeDAO.csvToByte();
-////        animeDAO.criarListaInvertidaType(listaInvertidaDAO);
-//        listaInvertidaDAO.insertType("TV",2);
+//        menu();
+        try {
+            RandomAccessFile raf = new RandomAccessFile("../resources/ListaAnime.csv", "rw");
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 18000; i++) {
+                sb.append(raf.readLine());
+                sb.append('\n');
+            }
+//            LZW lzw = new LZW(sb.toString());
+//            lzw.compression();
+//            lzw.decompress();
+//            System.out.println(lzw.compressedTxt);
+//            double log2 = Math.ceil(Math.log(lzw.positionDecompress) / Math.log(2));
+//            System.out.println("binário necessário: " + log2);
+//            double originalBits = sb.toString().getBytes().length * 8;
+//            // double originalBits = texto.getBytes().length * 8;
+//            double compressedBits = log2 * lzw.compressedList.size();
+//            System.out.println("compressed bits: " + compressedBits);
+//            System.out.println("original bits: " + originalBits);
+//            System.out.println("compression rate: "
+//                    + (1 - (compressedBits / originalBits)));
+//            System.out.println(lzw.decompressedText);
+            System.out.println("cabo");
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void menu() throws Exception {
@@ -85,7 +105,7 @@ public class Main {
                         System.out.println("Digite o ID buscado");
                         id = lerOpcao(sc);
                         indexOption = indexMenu(sc);
-                        ProgressBar searchProgress = new ProgressBar(("Searching id: " + id) , -1);
+                        ProgressBar searchProgress = new ProgressBar(("Searching id: " + id), -1);
                         switch (indexOption) {
                             case 1:
                                 searchProgress.startProcess();
@@ -109,7 +129,7 @@ public class Main {
                         }
                         break;
                     case 2:
-                        ProgressBar printProgress = new ProgressBar("Printing" , -1);
+                        ProgressBar printProgress = new ProgressBar("Printing", -1);
                         printProgress.startProcess();
                         animeDAO.printAllAnime();
                         printProgress.printTime();
@@ -118,7 +138,7 @@ public class Main {
                         System.out.println("Digite o ID do anime a ser apagado");
                         id = lerOpcao(sc);
                         indexOption = indexMenu(sc);
-                        ProgressBar deleteProgress = new ProgressBar("Deleting" , -1);
+                        ProgressBar deleteProgress = new ProgressBar("Deleting", -1);
                         switch (indexOption) {
                             case 1:
                                 deleteProgress.startProcess();
@@ -166,7 +186,7 @@ public class Main {
                                 dynamicHashingDAO.updateElement(e);
                                 break;
                             case 2:
-                                pos = animeDAO.updateWithDynamicHash(id , anime , dynamicHashingDAO);
+                                pos = animeDAO.updateWithDynamicHash(id, anime, dynamicHashingDAO);
                                 e = new PageElement(id, pos);
                                 bPlusTreeDAO.updateElement(e);
                                 break;
@@ -174,8 +194,8 @@ public class Main {
                                 System.out.println("Invalido");
                                 break;
                         }
-                        listaInvertidaDAOType.updateIndex(anime.type, oldPointer-8, pos - 8);
-                        listaInvertidaDAOStudio.updateIndex(anime.studio, oldPointer-8, pos - 8);
+                        listaInvertidaDAOType.updateIndex(anime.type, oldPointer - 8, pos - 8);
+                        listaInvertidaDAOStudio.updateIndex(anime.studio, oldPointer - 8, pos - 8);
                         break;
                     case 6:
                         System.out.println("Buscar animes por type");
@@ -192,7 +212,7 @@ public class Main {
                         System.out.println("Digite o tamanho do bloco");
                         int blocos = lerOpcao(sc);
                         op = 2;
-                        recordDAO.intercalacaoBalanceada(caminhos , blocos);
+                        recordDAO.intercalacaoBalanceada(caminhos, blocos);
                         break;
                     case 9:
                         indexarAnimes(nomeArquivo, animeDAO, sc);
@@ -214,7 +234,7 @@ public class Main {
                         System.out.println("Digite o ID a ser buscado");
                         id = lerOpcao(sc);
 //                        System.out.println(id);
-                        ProgressBar searchProgress = new ProgressBar(("Search id: " + id) , -1);
+                        ProgressBar searchProgress = new ProgressBar(("Search id: " + id), -1);
                         searchProgress.startProcess();
                         anime = animeDAO.searchAnimeById(id);
                         searchProgress.printTime();

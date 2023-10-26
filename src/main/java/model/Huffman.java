@@ -165,13 +165,13 @@ public class Huffman {
         boolean status;
         this.total += input.length();
         try {
-            ProgressBar progressBar = new ProgressBar("Building Dictionary" , input.length());
-            progressBar.startProcess();
+//            ProgressBar progressBar = new ProgressBar("Building Dictionary" , input.length());
+//            progressBar.startProcess();
             for (int i = 0; i < input.length(); i++) {
                 this.checkSymbol(input.charAt(i));
-                progressBar.updateStatus(i);
+//                progressBar.updateStatus(i);
             }
-            progressBar.done();
+//            progressBar.done();
             status = true;
         } catch (Exception e) {
             e.printStackTrace();
