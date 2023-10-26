@@ -184,9 +184,9 @@ public class Huffman {
 
     private void buildTree() {
         ArrayList<HuffmanTree> trees = new ArrayList<>();
-        ProgressBar progressBar = new ProgressBar("Building Huffman Tree" , -1);
+//        ProgressBar progressBar = new ProgressBar("Building Huffman Tree" , -1);
 
-        progressBar.startProcess();
+//        progressBar.startProcess();
 
         for (Character c : symbols.keySet()) {
             trees.add(new HuffmanTree(new Node(c , ((float) symbols.get(c) / this.total))));
@@ -237,7 +237,7 @@ public class Huffman {
         }
 
         this.huffmanTree = trees.get(0);
-        progressBar.done();
+//        progressBar.done();
     }
     private ArrayList<HuffmanTree> mergeNodes(ArrayList<HuffmanTree> main, ArrayList<HuffmanTree> aux) {
 
@@ -304,15 +304,15 @@ public class Huffman {
         buildTable();
         // printTable();
         StringBuilder decodedText = new StringBuilder();
-        ProgressBar progressBar = new ProgressBar("Compressing Text" , input.length());
-        progressBar.startProcess();
+//        ProgressBar progressBar = new ProgressBar("Compressing Text" , input.length());
+//        progressBar.startProcess();
         for (int i = 0; i < input.length(); i++) {
             decodedText.append(table.get(input.charAt(i)));
-            progressBar.updateStatus(i);
+//            progressBar.updateStatus(i);
         }
 
         this.compressedText = decodedText.toString();
-        progressBar.done();
+//        progressBar.done();
     }
 
     public void deCompressText() {

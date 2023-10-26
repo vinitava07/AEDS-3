@@ -15,33 +15,8 @@ public class Main {
         System.out.println("BEM VINDO AO MENU DE AEDS 3");
         System.out.println("===============================================");
 //        menu();
-        try {
-            RandomAccessFile raf = new RandomAccessFile("../resources/ListaAnime.csv", "rw");
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < 18000; i++) {
-                sb.append(raf.readLine());
-                sb.append('\n');
-            }
-//            LZW lzw = new LZW(sb.toString());
-//            lzw.compression();
-//            lzw.decompress();
-//            System.out.println(lzw.compressedTxt);
-//            double log2 = Math.ceil(Math.log(lzw.positionDecompress) / Math.log(2));
-//            System.out.println("binário necessário: " + log2);
-//            double originalBits = sb.toString().getBytes().length * 8;
-//            // double originalBits = texto.getBytes().length * 8;
-//            double compressedBits = log2 * lzw.compressedList.size();
-//            System.out.println("compressed bits: " + compressedBits);
-//            System.out.println("original bits: " + originalBits);
-//            System.out.println("compression rate: "
-//                    + (1 - (compressedBits / originalBits)));
-//            System.out.println(lzw.decompressedText);
-            System.out.println("cabo");
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        HuffmanDAO huffmanDAO = new HuffmanDAO();
+        huffmanDAO.createCompressedFile("../resources/ListaAnime.csv");
     }
 
     public static void menu() throws Exception {

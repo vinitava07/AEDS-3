@@ -1,5 +1,7 @@
 package model;
 
+import util.ProgressBar;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -27,12 +29,16 @@ public class LZW {
     }
 
     public void createDictionary() {
+        ProgressBar progressBar = new ProgressBar("Criando dicionario",255);
+        progressBar.startProcess();
         for (int i = 0; i <= 255; i++) { // Letras maiúsculas (A-Z)
             compressDictionary.put(String.valueOf((char) i), position);
             decompressDictionary.put(positionDecompress, String.valueOf((char) i));
             positionDecompress++;
             position++;
+            progressBar.updateStatus(i);
         }
+        progressBar.done();
         // for (int i = 97; i <= 122; i++) { // Letras minúsculas (a-z)
         // compressDictionary.put(String.valueOf((char) i), position);
         // position++;
@@ -57,6 +63,8 @@ public class LZW {
         int cont = 0;
         StringBuilder pattern = new StringBuilder();
         String toAdd;
+        ProgressBar progressBar = new ProgressBar("Comprimindo texto",rawText.length());
+        progressBar.startProcess();
         for (int i = 0; i < rawText.length(); ) {
             pattern.append(rawText.charAt(i));
             cont = i;
@@ -80,8 +88,10 @@ public class LZW {
             compressedList.add(compressDictionary.get(toAdd));
             compressDictionary.put(pattern.toString(), position++);
             pattern.setLength(0);
+            progressBar.updateStatus(i);
 
         }
+        progressBar.done();
         // System.out.println("raw: " + rawText);
         // System.out.println("final: " + compressedTxt);
         // System.out.println(compressDictionary.keySet());

@@ -13,10 +13,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
-import model.Anime;
-import model.Arquivo;
-import model.PageElement;
-import model.ListaInvertida;
+import model.*;
 import model.Record;
 import util.ProgressBar;
 
@@ -43,8 +40,8 @@ public class AnimeDAO {
     }
 
     public void csvToByte() {
-        File csv = new File(arquivo.auxFile);
-        File bin = new File(arquivo.mainFile);
+        File csv = new File(arquivo.csvFile);
+        File bin = new File(arquivo.binFile);
         String animeText;
         int contador = 0;
         Anime anime;
@@ -142,7 +139,7 @@ public class AnimeDAO {
     }
 
     public long createAnime(Anime anime) throws Exception {
-        File file = new File(this.arquivo.mainFile);
+        File file = new File(this.arquivo.binFile);
         long pos;
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         Record r = new Record();
@@ -153,7 +150,7 @@ public class AnimeDAO {
     }
 
     public void printAllAnime() {
-        File file = new File(this.arquivo.mainFile);
+        File file = new File(this.arquivo.binFile);
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             int lastId = 0;
             int recordLength;
@@ -220,7 +217,7 @@ public class AnimeDAO {
         boolean validRecord;
         byte[] byteArray = new byte[4];
         int animeID;
-        try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(arquivo.binFile, "rw")) {
 
             if (raf.readInt() < id) {
                 System.out.println("ID maior do que os cadastrados!");
@@ -261,7 +258,7 @@ public class AnimeDAO {
 
         Anime deletedRecord = null;
 
-        try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(arquivo.binFile, "rw")) {
             byte[] byteArray = new byte[4];
             boolean validRecord;
             int animeID;
@@ -351,7 +348,7 @@ public class AnimeDAO {
         Record r = new Record();
         long filePointer;
         r.setAnime(a);
-        try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(arquivo.binFile, "rw")) {
             if (raf.readInt() < id) {
                 System.out.println("ID maior do que os cadastrados!");
                 // the id search key is grater than the last recorded id
@@ -403,7 +400,7 @@ public class AnimeDAO {
 //        BPlusTreeDAO bPlusTreeDAO = new BPlusTreeDAO("../resources/indexB.bin",8);
 
 
-        File file = new File(this.arquivo.mainFile);
+        File file = new File(this.arquivo.binFile);
         ProgressBar progressBar = new ProgressBar("Building B+ Tree", 0);
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             int lastId = 0;
@@ -445,7 +442,7 @@ public class AnimeDAO {
                 System.out.println("Hash successfully deleted!!");
                 if (index.create()) System.out.println("Hash successfully recreated!!");
             }
-            File file = new File(this.arquivo.mainFile);
+            File file = new File(this.arquivo.binFile);
             ProgressBar progressBar = new ProgressBar("Building Hash", 0);
             try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
                 int recordLength;
@@ -482,7 +479,7 @@ public class AnimeDAO {
 
     public void indexInsertInBplusTree(long pos, BPlusTreeDAO indexFile) {
 
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "r")) {
             int id = raf.readInt();
             indexFile.insertElement(id, pos + 8);
         } catch (Exception e) {
@@ -494,7 +491,7 @@ public class AnimeDAO {
         long pointer = indexFile.search(id);
 //        System.out.println("B+: " + pointer);
         Anime result = null;
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "r")) {
             if (pointer > 0) {
                 raf.seek(pointer);
                 result = getAnime(raf);
@@ -508,7 +505,7 @@ public class AnimeDAO {
     public long removeAnimeWithBPlusTree(int id, BPlusTreeDAO indexFile) {
         Anime result = null;
         long pointer = indexFile.search(id);
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "rw")) {
             raf.seek(pointer - 8);
             byte[] bytes = new byte[4];
             raf.read(bytes, 0, 4);
@@ -523,7 +520,7 @@ public class AnimeDAO {
 
     public void indexInsertInHash(long pos, DynamicHashingDAO indexFile) {
 
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "r")) {
             int id = raf.readInt();
             PageElement pageElement = new PageElement(id, pos);
             indexFile.insertElement(pageElement);
@@ -537,7 +534,7 @@ public class AnimeDAO {
         long pointer = index.search(id);
 //        System.out.println("Hash: " + pointer);
         Anime result = null;
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "r")) {
             if (pointer > 0) {
                 raf.seek(pointer + 8);
                 result = getAnime(raf);
@@ -551,7 +548,7 @@ public class AnimeDAO {
     public long removeAnimeWithHash(int id, DynamicHashingDAO index) {
         boolean status = false;
         long pointer = index.search(id);
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "rw")) {
             byte[] bytes = new byte[4];
             raf.seek(pointer);
             raf.read(bytes, 0, 4);
@@ -574,8 +571,8 @@ public class AnimeDAO {
         ArrayList<String> types = new ArrayList<>();
         ProgressBar progressBar = new ProgressBar("Building Lista Invertida Type", 0);
         try {
-            RandomAccessFile animeRaf = new RandomAccessFile(this.arquivo.mainFile, "rw");
-            RandomAccessFile listaRaf = new RandomAccessFile(listFile.arquivo.mainFile, "rw");
+            RandomAccessFile animeRaf = new RandomAccessFile(this.arquivo.binFile, "rw");
+            RandomAccessFile listaRaf = new RandomAccessFile(listFile.arquivo.binFile, "rw");
             ArrayList<Long> pointers = new ArrayList<>();
             int lastID = animeRaf.readInt();
             boolean isValid;
@@ -648,8 +645,8 @@ public class AnimeDAO {
         ArrayList<String> studios = new ArrayList<>();
         ProgressBar progressBar = new ProgressBar("Building Lista invertida Studio", 0);
         try {
-            RandomAccessFile animeRaf = new RandomAccessFile(this.arquivo.mainFile, "rw");
-            RandomAccessFile listaRaf = new RandomAccessFile(listFile.arquivo.mainFile, "rw");
+            RandomAccessFile animeRaf = new RandomAccessFile(this.arquivo.binFile, "rw");
+            RandomAccessFile listaRaf = new RandomAccessFile(listFile.arquivo.binFile, "rw");
             ArrayList<Long> pointers = new ArrayList<>();
             int lastID = animeRaf.readInt();
             boolean isValid;
@@ -717,7 +714,7 @@ public class AnimeDAO {
 
     public void removeListaInvertidaType(int id, long pos, ListaInvertidaDAO listaInvertidaDAO, BPlusTreeDAO index) {
 
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "r")) {
             raf.seek(pos + 8);
             Anime a = getAnime(raf);
             listaInvertidaDAO.deleteIndice(a.type, pos);
@@ -729,7 +726,7 @@ public class AnimeDAO {
 
     public void removeListaInvertidaStudio(int id, long pos, ListaInvertidaDAO listaInvertidaDAO, BPlusTreeDAO index) {
 
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "r")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "r")) {
             raf.seek(pos + 8);
             Anime a = getAnime(raf);
             listaInvertidaDAO.deleteIndice(a.studio, pos);
@@ -752,7 +749,7 @@ public class AnimeDAO {
         long where = index.search(id);
         long newPosition = where;
         if (where != -1) {
-            try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
+            try (RandomAccessFile raf = new RandomAccessFile(arquivo.binFile, "rw")) {
                 raf.seek(where - 8);
                 raf.read(byteArray, 0, 4);
                 validRecord = isValidRecord(byteArray[0]);
@@ -804,7 +801,7 @@ public class AnimeDAO {
 //        System.out.println(where);
         long newPosition = where + 8;
         if (where != -1) {
-            try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
+            try (RandomAccessFile raf = new RandomAccessFile(arquivo.binFile, "rw")) {
                 raf.seek(where);
                 raf.read(byteArray, 0, 4);
                 validRecord = isValidRecord(byteArray[0]);
@@ -841,4 +838,26 @@ public class AnimeDAO {
 
         return newPosition;
     }
+
+    public void huffmanCompression() {
+
+        Huffman huffman = new Huffman();
+        try {
+            RandomAccessFile raf = new RandomAccessFile(arquivo.csvFile, "wr");
+
+
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public void LZWCompression() {
+
+    }
+
+
 }

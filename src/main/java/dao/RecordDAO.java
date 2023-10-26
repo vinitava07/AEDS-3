@@ -274,7 +274,7 @@ public class RecordDAO extends AnimeDAO {
 
             }/**FIM DO "while (tamBloco < this.qtdRegistros)"
              *ACABOU A INTERCALAÇÃO */
-            File f = new File(arquivo.mainFile);
+            File f = new File(arquivo.binFile);
             f.delete();
             RandomAccessFile raf = new RandomAccessFile(f, "rw");
             String finalFileAfterIntercalation = "f" + fileToBeRewriten + ".bin";
@@ -307,7 +307,7 @@ public class RecordDAO extends AnimeDAO {
                 file[i].delete();
             }
         }
-        try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(arquivo.binFile, "rw")) {
             sortAndInsert(raf, fileNames, caminhos, bloco);
             intercalation(fileNames, caminhos, bloco);
         } catch (Exception e) {

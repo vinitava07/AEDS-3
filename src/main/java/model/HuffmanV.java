@@ -58,7 +58,7 @@ public class HuffmanV {
 
     HuffNode root;
     String rawText;
-    StringBuilder compressedText;
+    public StringBuilder compressedText;
     StringBuilder decompressedText;
 
     Map<Character, String> huffTable;
@@ -190,7 +190,7 @@ public class HuffmanV {
 
     }
 
-    public void decompressText() {
+    public void decompressText(String compressed) {
 
         HuffNode aux = this.root;
         boolean toRoot = false;
