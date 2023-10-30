@@ -9,8 +9,13 @@ public class Bits extends ByteBits {
     public Bits() {
         super();
         bitsArray = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            bitsArray.add((byte) 0);
+        bitsArray.add((byte) 0);
+    }
+
+    public void setBitsArray(byte[] bitsArray) {
+        this.bitsArray.clear();
+        for (int i = 0; i < bitsArray.length; i++) {
+            this.bitsArray.add(bitsArray[i]);
         }
     }
 
@@ -60,6 +65,17 @@ public class Bits extends ByteBits {
             System.out.printf("%8s" , string);
         }
         System.out.println();
+    }
+
+    public byte get(long index) {
+        long x = index / 8;
+        int i = (int) (index % 8);
+        byte b = this.getBitsArray()[(int) x + 1];
+//        System.out.println(Integer.toUnsignedString(b & 0b11111111, 2));
+        b >>>= (7 - i);
+        b &= 0b0001;
+
+        return b;
     }
 }
 

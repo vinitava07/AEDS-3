@@ -1,5 +1,6 @@
 package model;
 
+import java.io.File;
 import java.io.RandomAccessFile;
 import java.util.*;
 import util.*;
@@ -139,6 +140,11 @@ public class Huffman {
     private long total;
     private HashMap<Character , Integer> symbols;
     public HashMap<Character , String> table;
+
+    public HashMap<Character, String> getTable() {
+        return table;
+    }
+
     private void checkSymbol(char c) {
         if(symbols.get((c)) == null) {
             symbols.put(c , 1);
@@ -163,6 +169,10 @@ public class Huffman {
         return total;
     }
 
+    public byte[] getCompressedBin() {
+        return compressedBin.getBitsArray();
+    }
+
     private boolean buildDictionary(String input) {
         boolean status;
         this.total += input.length();
@@ -172,7 +182,7 @@ public class Huffman {
             for (int i = 0; i < input.length(); i++) {
                 this.checkSymbol(input.charAt(i));
             }
-//            progressBar.done();
+            progressBar.done();
             status = true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -301,10 +311,10 @@ public class Huffman {
     public void compressText(String input) {
         buildDictionary(input);
         buildTree();
-        // printTree();
         buildTable();
-        // printTable();
+        ProgressBar progressBar = new ProgressBar("Compressing" , -1);
         StringBuilder decodedText = new StringBuilder();
+        progressBar.startProcess();
         for (int i = 0; i < input.length(); i++) {
             String code = table.get(input.charAt(i));
             for (int j = 0; j < code.length(); j++) {
@@ -312,14 +322,8 @@ public class Huffman {
             }
             decodedText.append(code);
         }
-
         this.compressedText = decodedText.toString();
-
-        try (RandomAccessFile raf = new RandomAccessFile("../resources/ListaAnime.bin" , "rw")) {
-            raf.write(compressedBin.getBitsArray());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        progressBar.done();
     }
 
     public void deCompressText() {
@@ -342,7 +346,7 @@ public class Huffman {
         assert temp != null;
 
         this.deCompressedText += temp.getElement();
-        
+
         return index;
     }
 

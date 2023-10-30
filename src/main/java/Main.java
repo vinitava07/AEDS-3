@@ -12,11 +12,12 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {
 
-        System.out.println("BEM VINDO AO MENU DE AEDS 3");
-        System.out.println("===============================================");
+//        System.out.println("BEM VINDO AO MENU DE AEDS 3");
+//        System.out.println("===============================================");
 //        menu();
         HuffmanDAO huffmanDAO = new HuffmanDAO();
-        huffmanDAO.createCompressedFile("../resources/ListaAnime.csv");
+        huffmanDAO.compressFile("../resources/ListaAnime.csv");
+        huffmanDAO.deCompressFile();
     }
 
     public static void menu() throws Exception {

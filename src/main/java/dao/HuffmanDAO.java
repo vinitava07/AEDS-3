@@ -1,44 +1,89 @@
 package dao;
 
+import model.Bits;
 import model.Huffman;
-import model.HuffmanV;
 
+import java.io.File;
 import java.io.RandomAccessFile;
+import java.util.HashMap;
 
 public class HuffmanDAO {
 
-    HuffmanV huffmanV;
+    Huffman huffman;
 
     public HuffmanDAO() {
-//        huffman = new Huffman();
+        huffman = new Huffman();
     }
     //TODO: VERIFICAR O HUFFMAN DO ALEXANDRE, ESCREVER A ARVORE NO ARQUIVO
-    public void createCompressedFile(String csvFileName) {
+    public void compressFile(String csvFileName) {
         try (RandomAccessFile raf = new RandomAccessFile(csvFileName, "rw")) {
-            RandomAccessFile rafCompression = new RandomAccessFile("../resources/HuffmanCompression.bin", "rw");
-            String line;
             StringBuilder sb = new StringBuilder();
-            BitManipulationDAO bitManipulationDAO = new BitManipulationDAO();
-            while ((line = raf.readLine()) != null) {
-                sb.append(line);
-                sb.append('\n');
+            while(raf.getFilePointer() < raf.length()) {
+                sb.append(raf.readLine() + '\n');
             }
-            huffmanV = new HuffmanV(sb.toString());
-            huffmanV.createCompressedText();
-            System.out.println("cabo");
-            int extraBits = huffmanV.compressedText.toString().length() % 8;
-            for (int i = 0; i < extraBits; i++) {
-                huffmanV.compressedText.append('0');
+            huffman.compressText(sb.toString());
+            File dir = new File("../resources/huffman/");
+            if (writeCompressed(dir)) {
+                System.out.println("Completed!!");
+            } else {
+                System.out.println("Failed to compress File!!");
             }
-            bitManipulationDAO.writeBytes(rafCompression, huffmanV.compressedText.toString());
-
-
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    private boolean writeCompressed(File dir) {
+        boolean status = false;
+        if(dir.exists()) {
+            deleteDir(dir);
+            dir.delete();
+        }
+        if (dir.mkdir()) {
+            try (RandomAccessFile raf1 = new RandomAccessFile(dir.getAbsolutePath() + "\\HuffmanCompression.bin", "rw")) {
+                raf1.write(huffman.getCompressedBin());
+                RandomAccessFile tree = new RandomAccessFile(dir.getAbsolutePath() + "\\tree.bin" , "rw");
+                HashMap<Character , String> table = huffman.getTable();
+                for (Character c :
+                        table.keySet()) {
+                    tree.writeUTF(c + ":" + table.get(c));
+                }
+                tree.close();
+                status = true;
+            } catch (Exception e) {
+                status = false;
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("Deu ruim!!!!");
+            System.out.println(dir.getAbsolutePath());
+        }
+        return status;
+    }
+    private static void deleteDir(File dir) {
+        File[] files = dir.listFiles();
 
+        assert files != null;
+        for (File myFile: files) {
+            if (myFile.isDirectory()) {
+                deleteDir(myFile);
+            }
+            myFile.delete();
+
+        }
     }
 
 
+    public boolean deCompressFile() {
+        try (RandomAccessFile raf = new RandomAccessFile("../resources/huffman/HuffmanCompression.bin" , "r")) {
+            byte[] bytes = new byte[(int) raf.length()];
+            raf.read(bytes);
+            Bits bits = new Bits();
+            bits.setBitsArray(bytes);
+
+        }  catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
