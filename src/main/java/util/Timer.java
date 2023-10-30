@@ -6,6 +6,6 @@ public class Timer {
     public Timer(){}
     public void start(){start = System.currentTimeMillis();}
     public void stop(){end = System.currentTimeMillis();}
-    public float getTime(){return ((float) (end - start) / 1000);}
-    public float getCurrentTime(){return ((float) (System.currentTimeMillis() - start) / 1000);}
+    public double getTime(){return ((double) (end - start) / 1000);}
+    public double getCurrentTime(){return ((double) (System.currentTimeMillis() - start) / 1000);}
 }
