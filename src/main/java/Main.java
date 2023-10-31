@@ -15,9 +15,11 @@ public class Main {
 //        System.out.println("BEM VINDO AO MENU DE AEDS 3");
 //        System.out.println("===============================================");
 //        menu();
-        HuffmanDAO huffmanDAO = new HuffmanDAO();
-        huffmanDAO.compressFile("../resources/ListaAnime.csv");
-        huffmanDAO.deCompressFile();
+//        HuffmanDAO huffmanDAO = new HuffmanDAO();
+//        huffmanDAO.compressFile("../resources/ListaAnime.csv");
+//        huffmanDAO.deCompressFile();
+        LZWDAO lzwdao = new LZWDAO("../resources/ListaAnime.csv");
+        lzwdao.createCompressedFile();
     }
 
     public static void menu() throws Exception {

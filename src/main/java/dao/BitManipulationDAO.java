@@ -24,22 +24,23 @@ class BitManipulationDAO {
     }
 
     public int readBit(RandomAccessFile raf) {
-        int bit = -1;
+        int bit = 0;
         if (controlReadBit == 8) {
             controlReadBit = 0;
         }
         try {
-            if (controlReadBit == 0) {
-
-                bite = raf.readByte();
-                for (int j = 7; j >= 0; j--) {
-                    bitArray[j] = bite & 0b1;
-                    bite = bite >> (1);
-                    // System.out.println(bite);
-                    // System.out.println("b[i] " + bitArray[j]);
+            if (raf.getFilePointer() <= raf.length()) {
+                if (controlReadBit == 0) {
+                    bite = raf.readByte();
+                    for (int j = 7; j >= 0; j--) {
+                        bitArray[j] = bite & 0b1;
+                        bite = bite >> (1);
+                        // System.out.println(bite);
+                        // System.out.println("b[i] " + bitArray[j]);
+                    }
                 }
+                bit = bitArray[controlReadBit++];
             }
-            bit = bitArray[controlReadBit++];
 
         } catch (Exception e) {
             e.printStackTrace();
