@@ -92,6 +92,7 @@ public class LZW {
 
         }
         progressBar.done();
+        createBinaryString(compressedList);
         // System.out.println("raw: " + rawText);
         // System.out.println("final: " + compressedTxt);
         // System.out.println(compressDictionary.keySet());

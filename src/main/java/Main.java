@@ -20,6 +20,7 @@ public class Main {
 //        huffmanDAO.deCompressFile();
         LZWDAO lzwdao = new LZWDAO("../resources/ListaAnime.csv");
         lzwdao.createCompressedFile();
+        lzwdao.decompressFile();
     }
 
     public static void menu() throws Exception {

@@ -39,8 +39,10 @@ class BitManipulationDAO {
                         // System.out.println("b[i] " + bitArray[j]);
                     }
                 }
+//                System.out.println(controlReadBit);
                 bit = bitArray[controlReadBit++];
             }
+
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -3,60 +3,78 @@ package dao;
 import model.Arquivo;
 import model.LZW;
 
+import java.io.File;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
 public class LZWDAO {
 
     LZW lzw;
-    Arquivo arquivo;
+    Arquivo fileToCompress;
+    String compressedFile = "../resources/LZWCompress.bin";
+    String decompressedFile;
 
     public LZWDAO(String filename) {
-        arquivo = new Arquivo("");
-        arquivo.csvFile = filename;
+        fileToCompress = new Arquivo("");
+        fileToCompress.csvFile = filename;
         lzw = new LZW();
 
     }
 
     public void createCompressedFile() {
+        File file = new File(compressedFile);
+        if (file.exists()) file.delete();
 
-        try (RandomAccessFile raf = new RandomAccessFile(arquivo.csvFile, "rw")) {
-            RandomAccessFile rafLZW = new RandomAccessFile("../resources/LZWCompress.bin", "rw");
+
+        try (RandomAccessFile raf = new RandomAccessFile(fileToCompress.csvFile, "rw")) {
+            RandomAccessFile rafLZW = new RandomAccessFile(compressedFile, "rw");
             StringBuilder sb = new StringBuilder();
+            BitManipulationDAO bitManipulationDAO = new BitManipulationDAO();
             while (raf.getFilePointer() < raf.length()) {
                 sb.append(raf.readLine() + '\n');
             }
             lzw.compression(sb.toString());
             double log2 = Math.ceil(Math.log(lzw.positionCompress) / Math.log(2));
-            lzw.createBinaryString(lzw.compressedList);
-            for (int i = 0; i < log2 % 8; i++) {
+            for (int i = 0; i < log2; i++) {
                 lzw.compressedTxt.append('0');
             }
-            BitManipulationDAO bitManipulationDAO = new BitManipulationDAO();
+            System.out.println("Escrevendo arquivo comprimido");
             bitManipulationDAO.writeBytes(rafLZW, lzw.compressedTxt.toString());
             System.out.println("binário necessário: " + log2);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    public void decompressFile() {
+        System.out.println("Descomprimindo:");
+        try (RandomAccessFile rafLZW = new RandomAccessFile(compressedFile, "rw")) {
+            BitManipulationDAO bitManipulationDAO = new BitManipulationDAO();
+            double log2 = Math.ceil(Math.log(lzw.positionCompress) / Math.log(2));
+
             ArrayList<Integer> decompressedList = new ArrayList<>();
             StringBuilder bitString = new StringBuilder();
             rafLZW.seek(0);
-            while (rafLZW.getFilePointer() < rafLZW.length()) {
-                for (int i = 0; i < 19; i++) {
+//            System.out.println(rafLZW.getFilePointer()/8);
+            System.out.println(lzw.compressedList.size());
+            int j = 0;
+            while (j < lzw.compressedList.size()) {
+                for (int i = 0; i < log2; i++) {
                     bitString.append(bitManipulationDAO.readBit(rafLZW));
                 }
-                System.out.println("bitstring: " + bitString);
+//                System.out.println("bitstring: " + bitString);
                 decompressedList.add(Integer.parseInt(bitString.toString(), 2));
                 bitString.setLength(0);
-//                System.out.println(raf);
-//            System.out.println("substring: " + lzw.compressedTxt.substring(0, 19));
-//            System.out.println("bitstring: " + bitString);
-//            System.out.println(decompressedList.get(0));
-//            System.out.println(lzw.compressedList.get(0));
+                j++;
             }
             lzw.decompress(decompressedList);
             System.out.println(lzw.decompressedText);
-//            lzw.decompress();
+            System.out.println(log2 % 8);
 
-//            lzw.decompress();
-//            System.out.println(lzw.decompressedText);
 
         } catch (Exception e) {
             e.printStackTrace();
