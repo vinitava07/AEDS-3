@@ -6,7 +6,7 @@ import java.util.Comparator;
 import java.util.NoSuchElementException;
 
 public class DataBucket {
-    private static final int maxElements = (int) (Math.ceil((0.05 * 18495))); // 5% of 18.495 -> 925
+    private static final int maxElements = 50; //(int) (Math.ceil((0.05 * 18495))); // 5% of 18.495 -> 925
     private short localDepth;
     private int numElements;
     private PageElement[] elements;

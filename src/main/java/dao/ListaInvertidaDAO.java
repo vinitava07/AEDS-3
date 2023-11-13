@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class ListaInvertidaDAO {
     //  qtdindex + AllElements  + Lapide +    qtd Ponteiros + Elemento + Ponteiros
@@ -18,12 +19,12 @@ public class ListaInvertidaDAO {
 
     //TODO: CREATE ANOTHER FILE FOR INDICES
     public ListaInvertidaDAO(String fileName, boolean create) {
-        File file = new File(fileName);
+        File file = new File("../resources/" + fileName);
         if (file.exists()) {
             file.delete();
         }
-        this.arquivo = new Arquivo(fileName);
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "rw")) {
+        this.arquivo = new Arquivo("../resources/" + fileName);
+        try (RandomAccessFile raf = new RandomAccessFile("../resources/" + this.arquivo.binFile, "rw")) {
             this.listaIndices = new ArrayList<>();
             qtdIndex = 0;
             raf.writeInt(qtdIndex);
@@ -35,9 +36,10 @@ public class ListaInvertidaDAO {
     }
 
     public ListaInvertidaDAO(String fileName) {
-        try (RandomAccessFile raf = new RandomAccessFile(fileName, "rw")) {
+
+        try (RandomAccessFile raf = new RandomAccessFile("../resources/" + fileName, "rw")) {
             this.qtdIndex = raf.readInt();
-            this.arquivo = new Arquivo(fileName);
+            this.arquivo = new Arquivo("../resources/" + fileName);
             listaIndices = new ArrayList<>();
             for (int i = 0; i < qtdIndex; i++) {
                 listaIndices.add(raf.readUTF().trim());
@@ -58,7 +60,7 @@ public class ListaInvertidaDAO {
 
     public ArrayList<Long> insertType(String type, long animePointer) {
         ArrayList<Long> arrayList = new ArrayList<>();
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "rw")) {
             raf.seek(0);
             int qtdTypes = raf.readInt();
             boolean isGraveyard = false;
@@ -69,16 +71,17 @@ public class ListaInvertidaDAO {
             for (int i = 0; i < qtdTypes; i++) {
                 raf.readUTF();
             }
+            System.out.println("AQUIII" + raf.getFilePointer());
             for (int i = 0; i < qtdTypes && !found; i++) {
                 filePointerBefore = raf.getFilePointer();
                 isGraveyard = raf.readBoolean();
                 listaInvertida.setGraveyard(isGraveyard);
                 if (!isGraveyard) {
-                    System.out.println("passou por um elemento vivo");
+
                     listaInvertida = getListaInvertida(raf);
                 }
                 if (type.equals(listaInvertida.getElement())) {
-                    System.out.println("o type ja existe");
+
                     found = true;
                     raf.seek(filePointerBefore);
                     raf.writeBoolean(true);
@@ -90,7 +93,7 @@ public class ListaInvertidaDAO {
 
             }
             if (!found) {
-                System.out.println("nao existe, vai ser criado");
+
                 listaInvertida.setElement(type);
                 listaInvertida.addPointer(0, animePointer);
                 listaInvertida.setQtdPointers(1);
@@ -108,7 +111,7 @@ public class ListaInvertidaDAO {
 
     public ArrayList<Long> insertStudio(String studio, long animePointer) {
         ArrayList<Long> arrayList = new ArrayList<>();
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "rw")) {
             raf.seek(0);
             int qtdTypes = raf.readInt();
             boolean isGraveyard = false;
@@ -124,11 +127,10 @@ public class ListaInvertidaDAO {
                 isGraveyard = raf.readBoolean();
                 listaInvertida.setGraveyard(isGraveyard);
                 if (!isGraveyard) {
-                    System.out.println("passou por um elemento vivo");
                     listaInvertida = getListaInvertida(raf);
                 }
                 if (studio.equals(listaInvertida.getElement())) {
-                    System.out.println("o type ja existe");
+
                     found = true;
                     raf.seek(filePointerBefore);
                     raf.writeBoolean(true);
@@ -166,7 +168,7 @@ public class ListaInvertidaDAO {
             for (int i = 0; i < lista.getQtdPointers(); i++) {
                 raf.writeLong(pointers.get(i));
             }
-            System.out.println("Lista Inserida no arquivo");
+//            System.out.println("Lista Inserida no arquivo");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -176,6 +178,7 @@ public class ListaInvertidaDAO {
         ListaInvertida listaInvertida = new ListaInvertida();
         try {
             long originalFP = raf.getFilePointer();
+
             listaInvertida.setQtdPointers(raf.readInt());
             listaInvertida.setElement(raf.readUTF());
 
@@ -192,17 +195,19 @@ public class ListaInvertidaDAO {
     }
 
     public void printIndex(AnimeDAO animeDAO) {
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "rw")) {
-            System.out.println("Digite o número índice a ser mostrado: ");
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "rw")) {
+            System.out.println("Digite o número índice na lista a ser mostrado: ");
             for (int i = 0; i < this.listaIndices.size(); i++) {
                 System.out.println("(" + i + ") " + this.listaIndices.get(i));
             }
             //TODO: ASK USER TO TYPE A NUMBER
-            ArrayList<Long> animePointers = searchIndex(raf, this.listaIndices.get(0).trim());
+            Scanner sc = new Scanner(System.in);
+            int indexBuscado = Integer.parseInt(sc.nextLine());
+            ArrayList<Long> animePointers = searchIndex(raf, this.listaIndices.get(indexBuscado).trim());
             Anime anime = new Anime();
             int animeSize;
             int animeID;
-            RandomAccessFile rafAnime = new RandomAccessFile(animeDAO.arquivo.mainFile, "rw");
+            RandomAccessFile rafAnime = new RandomAccessFile(animeDAO.arquivo.binFile, "rw");
             for (int i = 0; i < animePointers.size(); i++) {
                 if (animePointers.get(i) != -1) {
                     rafAnime.seek(animePointers.get(i));
@@ -282,7 +287,7 @@ public class ListaInvertidaDAO {
     }
 
     public void deleteIndice(String element, long indice) {
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "rw")) {
             raf.seek(0);
             int numberIndex = raf.readInt();
             for (int i = 0; i < numberIndex; i++) {
@@ -326,7 +331,7 @@ public class ListaInvertidaDAO {
     }
 
     public void updateIndex(String element, long oldPointer, long newPointer) {
-        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.mainFile, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "rw")) {
             raf.seek(0);
             int numberIndex = raf.readInt();
             for (int i = 0; i < numberIndex; i++) {
@@ -344,7 +349,9 @@ public class ListaInvertidaDAO {
                 if (!notAvailable) {
                     if (fileElement.equals(element)) {
                         for (int j = 0; j < qtdPointers && !found; j++) {
-                            if (raf.readLong() == oldPointer) {
+                            long busca = raf.readLong();
+                            if ( busca == oldPointer) {
+                                System.out.println(busca);
                                 found = true;
                                 raf.seek(raf.getFilePointer() - 8L);
                                 raf.writeLong(newPointer);
