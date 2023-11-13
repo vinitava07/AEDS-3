@@ -2,10 +2,12 @@ package dao;
 
 import model.Arquivo;
 import model.LZW;
+import util.ProgressMonitor;
 
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class LZWDAO {
 
@@ -51,7 +53,6 @@ public class LZWDAO {
     }
 
     public void decompressFile() {
-        System.out.println("Descomprimindo:");
         try (RandomAccessFile rafLZW = new RandomAccessFile(compressedFile, "rw")) {
             BitManipulationDAO bitManipulationDAO = new BitManipulationDAO();
             double log2 = Math.ceil(Math.log(lzw.positionCompress) / Math.log(2));
@@ -60,20 +61,23 @@ public class LZWDAO {
             StringBuilder bitString = new StringBuilder();
             rafLZW.seek(0);
 //            System.out.println(rafLZW.getFilePointer()/8);
-            System.out.println(lzw.compressedList.size());
-            int j = 0;
-            while (j < lzw.compressedList.size()) {
+//            System.out.println(lzw.compressedList.size());
+            AtomicLong j = new AtomicLong(0);
+            ProgressMonitor progressMonitor = new ProgressMonitor("Reading compressed File", j, lzw.compressedList.size());
+            progressMonitor.start();
+            while (j.getAndIncrement() < lzw.compressedList.size()) {
                 for (int i = 0; i < log2; i++) {
                     bitString.append(bitManipulationDAO.readBit(rafLZW));
                 }
 //                System.out.println("bitstring: " + bitString);
                 decompressedList.add(Integer.parseInt(bitString.toString(), 2));
                 bitString.setLength(0);
-                j++;
             }
+            progressMonitor.endProcess();
+            progressMonitor.join();
             lzw.decompress(decompressedList);
             System.out.println(lzw.decompressedText);
-            System.out.println(log2 % 8);
+//            System.out.println(log2 % 8);
 
 
         } catch (Exception e) {
