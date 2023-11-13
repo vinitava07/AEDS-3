@@ -177,12 +177,13 @@ public class Huffman {
         boolean status;
         this.total += input.length();
         try {
-            ProgressBar progressBar = new ProgressBar("Building Dictionary" , -1);
-            progressBar.startProcess();
+            ProgressMonitor progressMonitor = new ProgressMonitor("Building Dictionary");
+            progressMonitor.start();
             for (int i = 0; i < input.length(); i++) {
                 this.checkSymbol(input.charAt(i));
             }
-            progressBar.done();
+            progressMonitor.endProcess();
+            progressMonitor.join();
             status = true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -195,9 +196,9 @@ public class Huffman {
 
     private void buildTree() {
         ArrayList<HuffmanTree> trees = new ArrayList<>();
-        ProgressBar progressBar = new ProgressBar("Building Huffman Tree" , -1);
+        ProgressMonitor progressMonitor = new ProgressMonitor("Building Huffman Tree");
 
-        progressBar.startProcess();
+        progressMonitor.start();
 
         for (Character c : symbols.keySet()) {
             trees.add(new HuffmanTree(new Node(c , ((double) symbols.get(c) / this.total))));
@@ -248,7 +249,12 @@ public class Huffman {
         }
 
         this.huffmanTree = trees.get(0);
-        progressBar.done();
+        try{
+            progressMonitor.endProcess();
+            progressMonitor.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     private ArrayList<HuffmanTree> mergeNodes(ArrayList<HuffmanTree> main, ArrayList<HuffmanTree> aux) {
 
@@ -312,9 +318,9 @@ public class Huffman {
         buildDictionary(input);
         buildTree();
         buildTable();
-        ProgressBar progressBar = new ProgressBar("Compressing" , -1);
+        ProgressMonitor progressMonitor = new ProgressMonitor("Compressing");
         StringBuilder decodedText = new StringBuilder();
-        progressBar.startProcess();
+        progressMonitor.start();
         for (int i = 0; i < input.length(); i++) {
             String code = table.get(input.charAt(i));
             for (int j = 0; j < code.length(); j++) {
@@ -323,17 +329,27 @@ public class Huffman {
             decodedText.append(code);
         }
         this.compressedText = decodedText.toString();
-        progressBar.done();
+        try {
+            progressMonitor.endProcess();
+            progressMonitor.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void deCompressText() {
         int i = 0;
-        ProgressBar progressBar = new ProgressBar("Decompressing file" , -1);
-        progressBar.startProcess();
+        ProgressMonitor progressMonitor = new ProgressMonitor("Decompressing file");
+        progressMonitor.start();
         while (i < this.compressedText.length()) {
             i = putSymbol(i);
         }
-        progressBar.done();
+        try {
+            progressMonitor.endProcess();
+            progressMonitor.join();
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     private int putSymbol(int index) {
         Node temp = this.huffmanTree.getRoot();

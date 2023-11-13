@@ -12,10 +12,11 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicLong;
 
 import model.*;
 import model.Record;
-import util.ProgressBar;
+import util.ProgressMonitor;
 
 public class AnimeDAO {
 
@@ -43,7 +44,6 @@ public class AnimeDAO {
         File csv = new File(arquivo.csvFile);
         File bin = new File(arquivo.binFile);
         String animeText;
-        int contador = 0;
         Anime anime;
         Record r = new Record();
         // (animeText = csvFile.readLine()) != null
@@ -51,7 +51,8 @@ public class AnimeDAO {
             System.out.println("Arquivo recriado!");
             bin.delete();
         }
-        ProgressBar progressBar = new ProgressBar("Building Bin FILE", 1000L);
+        AtomicLong contador = new AtomicLong(0);
+        ProgressMonitor progressMonitor = new ProgressMonitor("Building Bin FILE", contador, 1000L);
         try {
             RandomAccessFile csvFile = new RandomAccessFile(csv, "r");
             RandomAccessFile binFile = new RandomAccessFile(bin, "rw");
@@ -59,24 +60,22 @@ public class AnimeDAO {
             csvFile.readLine(); // read csv file header
             anime = new Anime();
 
-            progressBar.startProcess();
-            while (contador < 1000) {
+            progressMonitor.start();
+            while (contador.getAndIncrement() < 1000) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 r.setAnime(anime);
                 // System.out.println(animeText);
                 // anime.printAttributes();
                 writeAnimeBytes(r, binFile, false);
-
-                contador++;
-                progressBar.updateStatus((double) contador);
             }
-            progressBar.done();
+            progressMonitor.endProcess();
+            progressMonitor.join();
+
             csvFile.close();
             binFile.close();
 
         } catch (Exception e) {
-            progressBar.printErrorMessage(e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -401,7 +400,6 @@ public class AnimeDAO {
 
 
         File file = new File(this.arquivo.binFile);
-        ProgressBar progressBar = new ProgressBar("Building B+ Tree", 0);
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             int lastId = 0;
             int recordLength;
@@ -410,9 +408,10 @@ public class AnimeDAO {
             raf.seek(0);
             lastId = raf.readInt();
 
-            progressBar.setHundredPerCent(raf.length() - 4);
-            progressBar.startProcess();
-            for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
+            AtomicLong i = new AtomicLong(0);
+            ProgressMonitor progressMonitor = new ProgressMonitor("Building B+ Tree", i, raf.length() - 4);
+            progressMonitor.start();
+            while (i.get() < raf.length() - 4) {
                 raf.read(byteArray, 0, 4);
                 validRecord = isValidRecord(byteArray[0]);
                 recordLength = getRecordLength(byteArray, validRecord);
@@ -426,12 +425,12 @@ public class AnimeDAO {
                 } else {
                     raf.seek(filePointer + recordLength);
                 }
-                progressBar.updateStatus((double) i);
+                i.addAndGet((4 + recordLength));
             }
-            progressBar.done();
+            progressMonitor.endProcess();
+            progressMonitor.join();
             raf.close();
         } catch (Exception e) {
-            progressBar.printErrorMessage(e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
@@ -443,15 +442,15 @@ public class AnimeDAO {
                 if (index.create()) System.out.println("Hash successfully recreated!!");
             }
             File file = new File(this.arquivo.binFile);
-            ProgressBar progressBar = new ProgressBar("Building Hash", 0);
             try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
                 int recordLength;
                 boolean validRecord;
                 byte[] byteArray = new byte[4];
                 raf.seek(4);
-                progressBar.setHundredPerCent(raf.length() - 4);
-                progressBar.startProcess();
-                for (long i = 0; i < raf.length() - 4; i += (4 + recordLength)) {
+                AtomicLong i = new AtomicLong(0);
+                ProgressMonitor progressMonitor = new ProgressMonitor("Building Hash", i, raf.length() - 4);
+                progressMonitor.start();
+                while (i.get() < raf.length()-4) {
                     long dataFilePosition = raf.getFilePointer();
                     raf.read(byteArray, 0, 4);
                     validRecord = isValidRecord(byteArray[0]);
@@ -464,12 +463,12 @@ public class AnimeDAO {
                     } else {
                         raf.seek(filePointer + recordLength);
                     }
-                    progressBar.updateStatus(i);
+                    i.addAndGet((4 + recordLength));
                 }
-                progressBar.done();
+                progressMonitor.endProcess();
+                progressMonitor.join();
                 raf.close();
             } catch (Exception e) {
-                progressBar.printErrorMessage(e.getLocalizedMessage());
                 e.printStackTrace();
             }
         } catch (Exception e) {
@@ -569,7 +568,6 @@ public class AnimeDAO {
     public ArrayList<String> criarListaInvertidaType(ListaInvertidaDAO listFile) {
         boolean result = true;
         ArrayList<String> types = new ArrayList<>();
-        ProgressBar progressBar = new ProgressBar("Building Lista Invertida Type", 0);
         try {
             RandomAccessFile animeRaf = new RandomAccessFile(this.arquivo.binFile, "rw");
             RandomAccessFile listaRaf = new RandomAccessFile(listFile.arquivo.binFile, "rw");
@@ -602,10 +600,10 @@ public class AnimeDAO {
             listFile.listaIndices = types;
             listFile.writeIndices(listaRaf);
             animeRaf.seek(4);
-
-            progressBar.setHundredPerCent(types.size());
-            progressBar.startProcess();
-            for (int j = 0; j < types.size(); j++) {
+            AtomicLong j = new AtomicLong(0);
+            ProgressMonitor progressMonitor = new ProgressMonitor("Building Lista Invertida Type", j, types.size());
+            progressMonitor.start();
+            while (j.get() < types.size()) {
 
                 for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
                     recordPointer = animeRaf.getFilePointer();
@@ -615,7 +613,7 @@ public class AnimeDAO {
                     animeID = animeRaf.readInt();
                     if (isValid) {
                         anime = getAnime(animeRaf);
-                        if (types.get(j).equals(anime.type)) {
+                        if (types.get((int) j.get()).equals(anime.type)) {
                             pointers.add(recordPointer);
 //                            anime.printAttributes();
                         }
@@ -625,16 +623,15 @@ public class AnimeDAO {
                     }
                 }
                 listaInvertida.setPointers(pointers);
-                listaInvertida.setElement(types.get(j).trim());
+                listaInvertida.setElement(types.get((int)j.get()).trim());
                 listFile.writeNewList(listaRaf, listaInvertida, true);
                 pointers = new ArrayList<>();
                 animeRaf.seek(4);
-                progressBar.updateStatus((double) j);
-
+                j.getAndIncrement();
             }
-            progressBar.done();
+            progressMonitor.endProcess();
+            progressMonitor.join();
         } catch (Exception e) {
-            progressBar.printErrorMessage(e.getLocalizedMessage());
             e.printStackTrace();
         }
         return types;
@@ -643,7 +640,6 @@ public class AnimeDAO {
     public void criarListaInvertidaStudio(ListaInvertidaDAO listFile) {
         boolean result = true;
         ArrayList<String> studios = new ArrayList<>();
-        ProgressBar progressBar = new ProgressBar("Building Lista invertida Studio", 0);
         try {
             RandomAccessFile animeRaf = new RandomAccessFile(this.arquivo.binFile, "rw");
             RandomAccessFile listaRaf = new RandomAccessFile(listFile.arquivo.binFile, "rw");
@@ -678,9 +674,10 @@ public class AnimeDAO {
             listFile.writeIndices(listaRaf);
             animeRaf.seek(4);
 
-            progressBar.setHundredPerCent(studios.size());
-            progressBar.startProcess();
-            for (int j = 0; j < studios.size(); j++) {
+            AtomicLong j = new AtomicLong(0);
+            ProgressMonitor progressMonitor = new ProgressMonitor("Building Lista invertida Studio", j, studios.size());
+            progressMonitor.start();
+            while (j.get() < studios.size()){
                 for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
                     recordPointer = animeRaf.getFilePointer();
                     animeRaf.read(bytes, 0, 4);
@@ -689,7 +686,7 @@ public class AnimeDAO {
                     animeID = animeRaf.readInt();
                     if (isValid) {
                         anime = getAnime(animeRaf);
-                        if (studios.get(j).equals(anime.studio)) {
+                        if (studios.get((int)j.get()).equals(anime.studio)) {
                             pointers.add(recordPointer);
 //                            anime.printAttributes();
                         }
@@ -699,15 +696,15 @@ public class AnimeDAO {
                     }
                 }
                 listaInvertida.setPointers(pointers);
-                listaInvertida.setElement(studios.get(j).trim());
+                listaInvertida.setElement(studios.get((int) j.get()).trim());
                 listFile.writeNewList(listaRaf, listaInvertida, true);
                 pointers = new ArrayList<>();
                 animeRaf.seek(4);
-                progressBar.updateStatus((double) j);
+                j.getAndIncrement();
             }
-            progressBar.done();
+            progressMonitor.endProcess();
+            progressMonitor.join();
         } catch (Exception e) {
-            progressBar.printErrorMessage(e.getLocalizedMessage());
             e.printStackTrace();
         }
     }
