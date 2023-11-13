@@ -12,19 +12,13 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {
 
-//        System.out.println("BEM VINDO AO MENU DE AEDS 3");
-//        System.out.println("===============================================");
-//        menu();
-//        HuffmanDAO huffmanDAO = new HuffmanDAO();
-//        huffmanDAO.compressFile("../resources/ListaAnime.csv");
-//        huffmanDAO.deCompressFile();
-        LZWDAO lzwdao = new LZWDAO("../resources/ListaAnime.csv");
-        lzwdao.createCompressedFile();
-        lzwdao.decompressFile();
+        System.out.println("BEM VINDO AO MENU DE AEDS 3");
+        System.out.println("===============================================");
+        menu();
     }
 
     public static void menu() throws Exception {
-        Scanner sc = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);    
         int op = 3;
         boolean loop = true;
         do {

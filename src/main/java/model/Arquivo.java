@@ -9,9 +9,9 @@ public class Arquivo {
         this.binFile = "";
     }
 
-    public Arquivo(String mainFile, String auxFile) {
-        this.binFile = mainFile;
-        this.csvFile = auxFile;
+    public Arquivo(String bin, String csv) {
+        this.binFile = bin;
+        this.csvFile = csv;
     }
 
     public Arquivo(String mainFile) {
