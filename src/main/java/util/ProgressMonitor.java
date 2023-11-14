@@ -53,7 +53,7 @@ public class ProgressMonitor extends Thread {
     public void endProcess() throws Exception{
         status.set(hundredPerCent);
         time.stop();
-        System.out.print("\033[u100%\n" + this.getName() + " Done!! took: " + time.getTime() + "\033[?25h\n\n");
+        System.out.print("\033[u100%\n" + this.getName() + " Done!! took: " + time.getTime() + "s\033[?25h\n\n");
         while (this.isAlive()) ;
         this.interrupt();
     }

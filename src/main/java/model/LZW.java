@@ -1,9 +1,10 @@
 package model;
 
-import util.ProgressBar;
+import util.ProgressMonitor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class LZW {
 
@@ -29,16 +30,21 @@ public class LZW {
     }
 
     public void createDictionary() {
-        ProgressBar progressBar = new ProgressBar("Criando dicionario", 255);
-        progressBar.startProcess();
-        for (int i = 0; i <= 255; i++) { // Letras maiúsculas (A-Z)
-            compressDictionary.put(String.valueOf((char) i), positionCompress);
-            decompressDictionary.put(positionDecompress, String.valueOf((char) i));
+        AtomicLong i = new AtomicLong(0);
+        ProgressMonitor progressMonitor = new ProgressMonitor("Criando dicionario", i, 255);
+        progressMonitor.start();
+        while (i.get() <= 255) { // Letras maiúsculas (A-Z)
+            compressDictionary.put(String.valueOf((char) i.get()), positionCompress);
+            decompressDictionary.put(positionDecompress, String.valueOf((char) i.getAndIncrement()));
             positionDecompress++;
             positionCompress++;
-            progressBar.updateStatus(i);
         }
-        progressBar.done();
+        try {
+            progressMonitor.endProcess();
+            progressMonitor.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         // for (int i = 97; i <= 122; i++) { // Letras minúsculas (a-z)
         // compressDictionary.put(String.valueOf((char) i), position);
         // position++;
@@ -63,20 +69,21 @@ public class LZW {
         int cont = 0;
         StringBuilder pattern = new StringBuilder();
         String toAdd;
-        ProgressBar progressBar = new ProgressBar("Comprimindo texto", rawText.length());
-        progressBar.startProcess();
-        for (int i = 0; i < rawText.length(); ) {
-            pattern.append(rawText.charAt(i));
-            cont = i;
+        AtomicLong i = new AtomicLong(0);
+        ProgressMonitor progressMonitor = new ProgressMonitor("Comprimindo texto", i, rawText.length());
+        progressMonitor.start();
+        while (i.get() < rawText.length()) {
+            pattern.append(rawText.charAt((int)i.get()));
+            cont = (int)i.get();
             if (!compressDictionary.containsKey(pattern.toString())) {
                 compressDictionary.put(pattern.toString(), positionCompress++);
             }
-            while (compressDictionary.containsKey(pattern.toString()) && ++i < rawText.length()) {
-                pattern.append(rawText.charAt(i));
+            while (compressDictionary.containsKey(pattern.toString()) && i.incrementAndGet() < rawText.length()) {
+                pattern.append(rawText.charAt((int)i.get()));
             }
             // i < rawText.length()
             // System.out.println(pattern);
-            if (i >= rawText.length()) {
+            if (i.get() >= rawText.length()) {
                 toAdd = (pattern.substring(0, pattern.length()));
 
             } else if (pattern.length() > 1) {
@@ -88,10 +95,13 @@ public class LZW {
             compressedList.add(compressDictionary.get(toAdd));
             compressDictionary.put(pattern.toString(), positionCompress++);
             pattern.setLength(0);
-            progressBar.updateStatus(i);
-
         }
-        progressBar.done();
+        try{
+            progressMonitor.endProcess();
+            progressMonitor.join();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
         createBinaryString(compressedList);
         // System.out.println("raw: " + rawText);
         // System.out.println("final: " + compressedTxt);
@@ -116,21 +126,29 @@ public class LZW {
     public void decompress(ArrayList<Integer> list) {
 
         StringBuilder newPat = new StringBuilder();
-        for (int i = 0; i < list.size(); i++) {
-            newPat.append(decompressDictionary.get(list.get(i)));
-            if (decompressDictionary.containsKey(list.get(i))) {
-                if (i == list.size() - 1 || (list.get(i + 1)) >= positionDecompress) {
-                    newPat.append(decompressDictionary.get(list.get(i)).charAt(0));
+        AtomicLong i = new AtomicLong(0);
+        ProgressMonitor progressMonitor = new ProgressMonitor("Decompressing", i, list.size());
+        progressMonitor.start();
+        while (i.get() < list.size()) {
+            newPat.append(decompressDictionary.get(list.get((int)i.get())));
+            if (decompressDictionary.containsKey(list.get((int)i.get()))) {
+                if (i.get() == list.size() - 1 || (list.get((int)i.get() + 1)) >= positionDecompress) {
+                    newPat.append(decompressDictionary.get(list.get((int)i.get())).charAt(0));
                     decompressDictionary.put(positionDecompress++, newPat.toString());
                 } else {
-                    newPat.append(decompressDictionary.get(list.get(i + 1)).charAt(0));
+                    newPat.append(decompressDictionary.get(list.get((int)i.get() + 1)).charAt(0));
                     decompressDictionary.put(positionDecompress++, newPat.toString());
 
                 }
                 newPat.setLength(0);
             }
-            decompressedText.append(decompressDictionary.get(list.get(i)));
-
+            decompressedText.append(decompressDictionary.get(list.get((int) i.getAndIncrement())));
+        }
+        try {
+            progressMonitor.endProcess();
+            progressMonitor.join();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         // decompressedText.append(decompressDictionary.get(compressedList.get(compressedList.size()
         // - 1)));
