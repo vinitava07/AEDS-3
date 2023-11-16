@@ -13,6 +13,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicLong;
+
+import menu.TaskMonitor;
 import model.*;
 import model.Record;
 import util.ProgressMonitor;
@@ -48,7 +50,9 @@ public class AnimeDAO {
         if (bin.exists()) {
             bin.delete();
         }
+        int amountOfRecords = 1000;
         AtomicLong contador = new AtomicLong(0);
+        TaskMonitor.setHundredPercent(amountOfRecords);
         ProgressMonitor progressMonitor = new ProgressMonitor("Building Bin FILE", contador, 1000L);
         try {
             RandomAccessFile csvFile = new RandomAccessFile(csv, "r");
@@ -57,14 +61,16 @@ public class AnimeDAO {
             csvFile.readLine(); // read csv file header
             anime = new Anime();
             progressMonitor.start();
-            while (contador.getAndIncrement() < 1000) {
+            while (contador.get() < amountOfRecords) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 r.setAnime(anime);
                 // System.out.println(animeText);
                 // anime.printAttributes();
                 writeAnimeBytes(r, binFile, false);
+                TaskMonitor.updateProgress(contador.getAndIncrement());
             }
+            TaskMonitor.end();
             progressMonitor.endProcess();
             progressMonitor.join();
             csvFile.close();
@@ -402,10 +408,12 @@ public class AnimeDAO {
             byte[] byteArray = new byte[4];
             raf.seek(0);
             lastId = raf.readInt();
-            AtomicLong i = new AtomicLong(0);
-            ProgressMonitor progressMonitor = new ProgressMonitor("Building B+ Tree", i, raf.length() - 4);
+            long total = (raf.length() - 4);
+            TaskMonitor.newTask("Building B+ Tree", total);
+            long i = 0;
+            ProgressMonitor progressMonitor = new ProgressMonitor("Building B+ Tree");
             progressMonitor.start();
-            while (i.get() < raf.length() - 4) {
+            while (i < total) {
                 raf.read(byteArray, 0, 4);
                 validRecord = isValidRecord(byteArray[0]);
                 recordLength = getRecordLength(byteArray, validRecord);
@@ -419,7 +427,7 @@ public class AnimeDAO {
                 } else {
                     raf.seek(filePointer + recordLength);
                 }
-                i.addAndGet((4 + recordLength));
+                TaskMonitor.updateProgress(i += (4 + recordLength));
             }
             progressMonitor.endProcess();
             progressMonitor.join();
@@ -441,10 +449,12 @@ public class AnimeDAO {
                 boolean validRecord;
                 byte[] byteArray = new byte[4];
                 raf.seek(4);
-                AtomicLong i = new AtomicLong(0);
-                ProgressMonitor progressMonitor = new ProgressMonitor("Building Hash", i, raf.length() - 4);
+                long total = (raf.length() - 4);
+                long i = 0;
+                TaskMonitor.newTask("Building Hash", total);
+                ProgressMonitor progressMonitor = new ProgressMonitor("Building Hash");
                 progressMonitor.start();
-                while (i.get() < raf.length()-4) {
+                while (i < total) {
                     long dataFilePosition = raf.getFilePointer();
                     raf.read(byteArray, 0, 4);
                     validRecord = isValidRecord(byteArray[0]);
@@ -457,7 +467,7 @@ public class AnimeDAO {
                     } else {
                         raf.seek(filePointer + recordLength);
                     }
-                    i.addAndGet((4 + recordLength));
+                    TaskMonitor.updateProgress(i += (4 + recordLength));
                 }
                 progressMonitor.endProcess();
                 progressMonitor.join();
@@ -594,10 +604,12 @@ public class AnimeDAO {
             listFile.listaIndices = types;
             listFile.writeIndices(listaRaf);
             animeRaf.seek(4);
-            AtomicLong j = new AtomicLong(0);
-            ProgressMonitor progressMonitor = new ProgressMonitor("Building Lista Invertida Type", j, types.size());
+            long total = types.size();
+            TaskMonitor.newTask("Building Lista Invertida Type", total);
+            long j = 0;
+            ProgressMonitor progressMonitor = new ProgressMonitor("Building Lista Invertida Type");
             progressMonitor.start();
-            while (j.get() < types.size()) {
+            while (j < total) {
 
                 for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
                     recordPointer = animeRaf.getFilePointer();
@@ -607,7 +619,7 @@ public class AnimeDAO {
                     animeID = animeRaf.readInt();
                     if (isValid) {
                         anime = getAnime(animeRaf);
-                        if (types.get((int) j.get()).equals(anime.type)) {
+                        if (types.get((int) j).equals(anime.type)) {
                             pointers.add(recordPointer);
 //                            anime.printAttributes();
                         }
@@ -617,11 +629,11 @@ public class AnimeDAO {
                     }
                 }
                 listaInvertida.setPointers(pointers);
-                listaInvertida.setElement(types.get((int)j.get()).trim());
+                listaInvertida.setElement(types.get((int)j).trim());
                 listFile.writeNewList(listaRaf, listaInvertida, true);
                 pointers = new ArrayList<>();
                 animeRaf.seek(4);
-                j.getAndIncrement();
+                TaskMonitor.updateProgress(j++);
             }
             progressMonitor.endProcess();
             progressMonitor.join();
@@ -667,11 +679,12 @@ public class AnimeDAO {
             listFile.listaIndices = studios;
             listFile.writeIndices(listaRaf);
             animeRaf.seek(4);
-
-            AtomicLong j = new AtomicLong(0);
-            ProgressMonitor progressMonitor = new ProgressMonitor("Building Lista invertida Studio", j, studios.size());
+            long total = studios.size();
+            TaskMonitor.newTask("Building Lista Invertida Studio", total);
+            long j = 0;
+            ProgressMonitor progressMonitor = new ProgressMonitor("Building Lista invertida Studio");
             progressMonitor.start();
-            while (j.get() < studios.size()){
+            while (j < total){
                 for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
                     recordPointer = animeRaf.getFilePointer();
                     animeRaf.read(bytes, 0, 4);
@@ -680,7 +693,7 @@ public class AnimeDAO {
                     animeID = animeRaf.readInt();
                     if (isValid) {
                         anime = getAnime(animeRaf);
-                        if (studios.get((int)j.get()).equals(anime.studio)) {
+                        if (studios.get((int)j).equals(anime.studio)) {
                             pointers.add(recordPointer);
 //                            anime.printAttributes();
                         }
@@ -690,11 +703,11 @@ public class AnimeDAO {
                     }
                 }
                 listaInvertida.setPointers(pointers);
-                listaInvertida.setElement(studios.get((int) j.get()).trim());
+                listaInvertida.setElement(studios.get((int) j).trim());
                 listFile.writeNewList(listaRaf, listaInvertida, true);
                 pointers = new ArrayList<>();
                 animeRaf.seek(4);
-                j.getAndIncrement();
+                TaskMonitor.updateProgress(j++);
             }
             progressMonitor.endProcess();
             progressMonitor.join();
@@ -830,20 +843,11 @@ public class AnimeDAO {
         return newPosition;
     }
 
-    public void huffmanCompression() {
+    public long huffmanCompression() {
+        HuffmanDAO huffmanDAO = new HuffmanDAO();
+        huffmanDAO.compressFile(arquivo.csvFile);
 
-        Huffman huffman = new Huffman();
-        try {
-            RandomAccessFile raf = new RandomAccessFile(arquivo.csvFile, "wr");
-
-
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
+        return huffmanDAO.getCompressedSize();
     }
 
     public void LZWCompression() {

@@ -9,11 +9,18 @@ import java.util.HashMap;
 
 public class HuffmanDAO {
 
+    private long compressedSize;
     Huffman huffman;
 
     public HuffmanDAO() {
         huffman = new Huffman();
+        compressedSize = 0;
     }
+
+    public long getCompressedSize() {
+        return compressedSize;
+    }
+
     //TODO: VERIFICAR O HUFFMAN DO ALEXANDRE, ESCREVER A ARVORE NO ARQUIVO
     public void compressFile(String csvFileName) {
         try (RandomAccessFile raf = new RandomAccessFile(csvFileName, "rw")) {
@@ -28,6 +35,7 @@ public class HuffmanDAO {
             } else {
                 System.out.println("Failed to compress File!!");
             }
+            this.compressedSize = new File(dir.getAbsolutePath() + "\\HuffmanCompression.bin").length();
         } catch (Exception e) {
             e.printStackTrace();
         }

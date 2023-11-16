@@ -1,4 +1,5 @@
 import dao.*;
+import menu.Menu;
 import model.*;
 import util.*;
 import java.io.RandomAccessFile;
@@ -10,9 +11,11 @@ import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws Exception {
-        System.out.print("\033[H\033[2JBEM VINDO AO MENU DE AEDS 3\n");
-        System.out.println("===============================================");
-        menu();
+        Menu.main(args);
+//        menu();
+//        HuffmanDAO huffmanDAO = new HuffmanDAO();
+//        huffmanDAO.compressFile("../resources/ListaAnime.csv");
+
     }
 
     public static void menu() throws Exception {
