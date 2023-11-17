@@ -1,6 +1,7 @@
 import dao.*;
 import model.*;
 import util.*;
+
 import java.io.RandomAccessFile;
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -17,25 +18,107 @@ public class Main {
     }
 
     public static void menu() throws Exception {
-        Scanner sc = new Scanner(System.in);    
+        Scanner sc = new Scanner(System.in);
         int op = 3;
         boolean loop = true;
         do {
             System.out.println("Qual modo você deseja utilizar?");
             System.out.println("(1) - Indexação em tempo real");
             System.out.println("(2) - Sem indexação");
-            System.out.println("(3) - Sair");
+            System.out.println("(3) - Compressão e Casamento de padrões");
+            System.out.println("(4) - Sair");
             op = lerOpcao(sc);
-            if (op > 3 || op < 1) {
+            if (op > 4 || op < 1) {
                 System.out.println("Opcao invalida");
             } else {
                 loop = false;
             }
         } while (loop);
-        if (op != 3) {
+
+        if (op == 1 || op == 2) {
             opcoesMenu(op, sc);
+        } else if (op == 3) {
+            menuCompPM(sc);
         }
         sc.close();
+    }
+
+    public static void menuCompPM(Scanner sc) {
+        String nomeCsv;
+        String nomeBin;
+        int opMenu;
+//        String nomeArquivo = lerNomeArquivo(sc);
+        String nomeArquivo = "ListaAnime";
+        nomeCsv = nomeArquivo + ".csv";
+
+
+        do {
+            showMenuPM();
+            opMenu = lerOpcao(sc);
+            String pattern;
+            switch (opMenu) {
+                case 1:
+                    System.out.println("Digite o padrão que deseja buscar: ");
+                    pattern = sc.nextLine();
+                    KMPDAO kmpdao = new KMPDAO(pattern);
+                    try (RandomAccessFile raf = new RandomAccessFile("../resources/" + nomeCsv, "rw")) {
+                        StringBuilder sb = new StringBuilder();
+                        String text;
+                        System.out.println("Carregando arquivo csv");
+                        while (raf.getFilePointer() < raf.length()) {
+                            sb.append(raf.readLine());
+                            sb.append('\n');
+                        }
+                        System.out.println("Leitura finalizada");
+                        text = sb.toString();
+                        kmpdao.searchPattern(text);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("O número de comparações foi: " + kmpdao.getNComp());
+                    System.out.println("Função de falha: ");
+                    kmpdao.printFailure();
+                    break;
+                case 2:
+                    System.out.println("Digite o padrão que deseja buscar: ");
+                    pattern = sc.nextLine();
+                    BoyerMooreDAO boyerMooreDAO = new BoyerMooreDAO(pattern, nomeCsv);
+                    boyerMooreDAO.searchPattern();
+
+                    break;
+                case 3:
+                    HuffmanDAO huffmanDAO = new HuffmanDAO();
+                    huffmanDAO.compressFile("../resources/" + nomeCsv);
+                    huffmanDAO.deCompressFile();
+
+
+                    break;
+                case 4:
+                    LZWDAO lzwdao = new LZWDAO(nomeCsv);
+                    lzwdao.createCompressedFile();
+                    lzwdao.decompressFile();
+                    break;
+                case 5:
+                    System.out.println("Saindo do programa");
+                    break;
+                default:
+                    System.out.println("Opção inválida");
+                    break;
+            }
+
+        } while (opMenu != 5);
+
+    }
+
+    public static void showMenuPM() {
+
+        System.out.println("O que deseja fazer?");
+        System.out.println("(1) - Buscar padrão por KMP");
+        System.out.println("(2) - Buscar padrão por Boyer Moore");
+        System.out.println("(3) - Comprimir com Huffman");
+        System.out.println("(4) - Comprimir com LZW");
+        System.out.println("(5) - Sair");
+
     }
 
     public static void opcoesMenu(int op, Scanner sc) throws Exception {

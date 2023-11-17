@@ -1,8 +1,11 @@
 package dao;
 
 import model.Arquivo;
+import util.ProgressMonitor;
 
+import java.io.RandomAccessFile;
 import java.util.HashMap;
+import java.util.Random;
 
 
 public class BoyerMooreDAO {
@@ -12,7 +15,7 @@ public class BoyerMooreDAO {
     int[] dsb;
     Arquivo arquivo;
 
-    BoyerMooreDAO() {
+    public BoyerMooreDAO() {
         text = "";
         pattern = "";
         table = new HashMap<>();
@@ -21,13 +24,25 @@ public class BoyerMooreDAO {
 
     }
 
-    public BoyerMooreDAO(String texto, String padrao, String csv) {
+    public BoyerMooreDAO(String padrao, String csv) {
 
-        text = texto;
+//        text = texto;
         pattern = padrao;
         table = new HashMap<>();
         dsb = new int[padrao.length()];
         arquivo = new Arquivo("", csv);
+        System.out.println("Carregando arquivo csv");
+        try (RandomAccessFile raf = new RandomAccessFile("../resources/" + csv, "rw")) {
+            StringBuilder sb = new StringBuilder();
+            while (raf.getFilePointer() < raf.length()) {
+                sb.append(raf.readLine());
+                sb.append('\n');
+            }
+            text = sb.toString();
+            System.out.println("Leitura finalizada");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         createBadCharMap();
         createDSBArray();
 
@@ -129,6 +144,8 @@ public class BoyerMooreDAO {
         int txtPointer = 0;
         // int j = pattSize;
         boolean found = false;
+        ProgressMonitor progressMonitor = new ProgressMonitor("Boyer Moore patter matching");
+        progressMonitor.start();
         while (canRun) {
             if (aux >= text.length()) {
                 canRun = false;
@@ -162,6 +179,12 @@ public class BoyerMooreDAO {
 
             }
 
+        }
+        try {
+            progressMonitor.endProcess();
+            progressMonitor.join();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         if (found) {
             System.out.println("Padrão encontrado, inicio: " + (txtPointer + 1) + " fim: " + aux);

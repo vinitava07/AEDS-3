@@ -18,7 +18,7 @@ public class LZWDAO {
 
     public LZWDAO(String filename) {
         fileToCompress = new Arquivo("");
-        fileToCompress.csvFile = filename;
+        fileToCompress.csvFile = "../resources/" + filename;
         lzw = new LZW();
 
     }
@@ -42,7 +42,15 @@ public class LZWDAO {
             }
             System.out.println("Escrevendo arquivo comprimido");
             bitManipulationDAO.writeBytes(rafLZW, lzw.compressedTxt.toString());
+            System.out.println("Escrita finalizada");
             System.out.println("binário necessário: " + log2);
+            System.out.println("size: " + lzw.compressedList.size());
+            double originalBits = sb.toString().getBytes().length * 8;
+            double compressedBits = log2 * lzw.compressedList.size();
+            System.out.println("compressed bits: " + compressedBits);
+            System.out.println("original bits: " + originalBits);
+            System.out.println("compression rate: "
+                    + (1 - (compressedBits / originalBits)));
 
 
         } catch (Exception e) {
@@ -76,7 +84,7 @@ public class LZWDAO {
             progressMonitor.endProcess();
             progressMonitor.join();
             lzw.decompress(decompressedList);
-            System.out.println(lzw.decompressedText);
+//            System.out.println(lzw.decompressedText);
 //            System.out.println(log2 % 8);
 
 
