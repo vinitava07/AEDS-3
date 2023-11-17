@@ -3,7 +3,7 @@ package dao;
 import model.Arquivo;
 import model.Record;
 import model.Tape;
-import util.ProgressBar;
+import util.ProgressMonitor;
 
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -127,6 +127,8 @@ public class RecordDAO extends AnimeDAO {
     private void intercalation(String[] fileNames, int caminhos, int bloco) {
 
         try {
+            ProgressMonitor progressMonitor = new ProgressMonitor("Intercalação");
+            progressMonitor.start();
             Record minRecord = new Record();
             File[] arquivos = new File[caminhos * 2];
             for (int i = 0; i < caminhos * 2; i++) {
@@ -153,8 +155,6 @@ public class RecordDAO extends AnimeDAO {
             RandomAccessFile[] files = new RandomAccessFile[caminhos * 2];
             int fileToBeRewriten = 0;
             int contador = 0;
-            ProgressBar progressBar = new ProgressBar("Intercalação", this.qtdRegistros);
-            progressBar.startProcess();
             while (tamBloco < this.qtdRegistros) {
                 for (int i = 0; i < caminhos * 2; i++) {
                     files[i] = new RandomAccessFile(fileNames[i], "rw");
@@ -240,10 +240,8 @@ public class RecordDAO extends AnimeDAO {
                     }
 
                     contador++;
-                    progressBar.updateStatus(contador);
                 }/**FIM DE "while (contador < Math.ceil(((float) qtdRegistros / (tamBloco * caminhos))))"
                  *FAZ A INTERCALAÇÃO N VEZES */
-                progressBar.done();
 
 
                 tamBloco = tamBloco * caminhos;
@@ -274,7 +272,7 @@ public class RecordDAO extends AnimeDAO {
 
             }/**FIM DO "while (tamBloco < this.qtdRegistros)"
              *ACABOU A INTERCALAÇÃO */
-            File f = new File(arquivo.mainFile);
+            File f = new File(arquivo.binFile);
             f.delete();
             RandomAccessFile raf = new RandomAccessFile(f, "rw");
             String finalFileAfterIntercalation = "f" + fileToBeRewriten + ".bin";
@@ -285,6 +283,9 @@ public class RecordDAO extends AnimeDAO {
                 finalRecord.setSize(0);
                 writeAnimeBytes(finalRecord, raf, false);
             }
+
+            progressMonitor.endProcess();
+            progressMonitor.join();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -307,7 +308,7 @@ public class RecordDAO extends AnimeDAO {
                 file[i].delete();
             }
         }
-        try (RandomAccessFile raf = new RandomAccessFile(arquivo.mainFile, "rw")) {
+        try (RandomAccessFile raf = new RandomAccessFile(arquivo.binFile, "rw")) {
             sortAndInsert(raf, fileNames, caminhos, bloco);
             intercalation(fileNames, caminhos, bloco);
         } catch (Exception e) {

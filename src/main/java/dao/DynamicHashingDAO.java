@@ -38,13 +38,13 @@ public class DynamicHashingDAO {
         boolean status;
         try {
             DataBucketDAO bucketDAO = new DataBucketDAO(new DataBucket(0));
-            RandomAccessFile raf0 = new RandomAccessFile(this.file.mainFile, "rw");
+            RandomAccessFile raf0 = new RandomAccessFile(this.file.binFile, "rw");
             bucketDAO.writeDataBucket(raf0);
             raf0.close();
 
             DataRecords dir = new DataRecords(bucketDAO.writtenAt);
             DataRecordsDAO dirDAO = new DataRecordsDAO(dir);
-            RandomAccessFile raf1 = new RandomAccessFile(this.file.auxFile, "rw");
+            RandomAccessFile raf1 = new RandomAccessFile(this.file.csvFile, "rw");
             dirDAO.writeDataRecord(raf1);
             raf1.close();
             status = true;
@@ -58,8 +58,8 @@ public class DynamicHashingDAO {
     public boolean delete() {
         boolean status;
         try {
-            File file1 = new File(this.file.auxFile);
-            File file2 = new File(this.file.mainFile);
+            File file1 = new File(this.file.csvFile);
+            File file2 = new File(this.file.binFile);
             if(file1.exists()) file1.delete();
             if(file2.exists()) file2.delete();
             status = true;
@@ -72,15 +72,15 @@ public class DynamicHashingDAO {
 
     public void insertElement(PageElement element) {
         try {
-            File file = new File(this.file.auxFile);
-            if(file.exists() == false) throw new Exception("The file: \"" + this.file.auxFile + "\" doesn't exist!!");
+            File file = new File(this.file.csvFile);
+            if(file.exists() == false) throw new Exception("The file: \"" + this.file.csvFile + "\" doesn't exist!!");
             else {
                 DataRecordsDAO dir = new DataRecordsDAO();
-                dir.readFromFile(this.file.auxFile);
+                dir.readFromFile(this.file.csvFile);
                 int hash = dir.dataRecords.hash(element.getId());
                 long where = dir.dataRecords.getPointers()[hash];
                 DataBucketDAO bucketDAO = new DataBucketDAO();
-                bucketDAO.readFromFile(this.file.mainFile , where);
+                bucketDAO.readFromFile(this.file.binFile, where);
                 if(bucketDAO.bucket.search(element.getId()) != null) throw new RuntimeException("An element with the id:" + element.getId() + " already exists!");
                 if (bucketDAO.bucket.getNumElements() == DataBucket.getMaxElements()) { // bucket is full!!
                     if (bucketDAO.bucket.getLocalDepth() == dir.dataRecords.getGlobalDepth()) { //increase the global depth
@@ -89,23 +89,23 @@ public class DynamicHashingDAO {
                     bucketDAO.bucket.increaseLocalDepth();
                     DataBucket auxBucket = new DataBucket(bucketDAO.bucket.getLocalDepth());
                     int newBucketHashPos = dir.reAdjustBuckets(bucketDAO.bucket, auxBucket, hash);
-                    RandomAccessFile raf = new RandomAccessFile(this.file.mainFile, "rw");
+                    RandomAccessFile raf = new RandomAccessFile(this.file.binFile, "rw");
                     bucketDAO.overWrite(raf);
                     raf.close();
                     //TODO : reuse bucketDAO object below
                     DataBucketDAO auxBucketDAO = new DataBucketDAO(auxBucket);
-                    raf = new RandomAccessFile(this.file.mainFile, "rw");
+                    raf = new RandomAccessFile(this.file.binFile, "rw");
                     auxBucketDAO.writeDataBucket(raf);
                     raf.close();
                     dir.updateDataRecord(newBucketHashPos, auxBucketDAO.writtenAt);
-                    raf = new RandomAccessFile(this.file.auxFile, "rw");
+                    raf = new RandomAccessFile(this.file.csvFile, "rw");
                     dir.writeDataRecord(raf);
                     raf.close();
                     insertElement(element);
 
                 } else {
                     bucketDAO.bucket.insertElement(element);
-                    RandomAccessFile raf = new RandomAccessFile(this.file.mainFile, "rw");
+                    RandomAccessFile raf = new RandomAccessFile(this.file.binFile, "rw");
                     bucketDAO.overWrite(raf);
                     raf.close();
                 }
@@ -127,7 +127,7 @@ public class DynamicHashingDAO {
             if(id < 0) throw new NoSuchElementException("Invalid ID! There can not exists an negative ID!");
             DataBucketDAO bucketDAO = searchBucket(id);
             bucketDAO.bucket.removeElement(id);
-            RandomAccessFile raf = new RandomAccessFile(this.file.mainFile , "rw");
+            RandomAccessFile raf = new RandomAccessFile(this.file.binFile, "rw");
             bucketDAO.overWrite(raf);
             raf.close();
             System.err.println("Element successfully removed!");
@@ -146,7 +146,7 @@ public class DynamicHashingDAO {
             if(element.getId() < 0) throw new NoSuchElementException("Invalid ID! There can not exists an negative ID!");
             DataBucketDAO bucketDAO = searchBucket(element.getId());
             if(bucketDAO.bucket.updateElement(element) == false) throw new Exception("Element not found!!");
-            RandomAccessFile raf = new RandomAccessFile(this.file.mainFile , "rw");
+            RandomAccessFile raf = new RandomAccessFile(this.file.binFile, "rw");
             bucketDAO.overWrite(raf);
             raf.close();
             System.err.println("Element successfully updated!");
@@ -180,11 +180,11 @@ public class DynamicHashingDAO {
 
     private DataBucketDAO searchBucket(int id) throws Exception{
         DataRecordsDAO dir = new DataRecordsDAO();
-        dir.readFromFile(this.file.auxFile);
+        dir.readFromFile(this.file.csvFile);
         int hash = dir.dataRecords.hash(id);
         long where = dir.dataRecords.getPointers()[hash];
         DataBucketDAO bucketDAO = new DataBucketDAO();
-        bucketDAO.readFromFile(this.file.mainFile , where);
+        bucketDAO.readFromFile(this.file.binFile, where);
         if(bucketDAO.bucket.getElements()[0].getId() == -1) throw new InstantiationException("The current Hash is empty or haven't been build!!");
         return bucketDAO;
     }

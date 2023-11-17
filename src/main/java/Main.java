@@ -1,9 +1,7 @@
 import dao.*;
-import model.Anime;
-import model.Huffman;
-import model.PageElement;
-import util.ProgressBar;
-
+import model.*;
+import util.*;
+import java.io.RandomAccessFile;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -13,19 +11,13 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) throws Exception {
 
-        System.out.println("BEM VINDO AO MENU DE AEDS 3");
+        System.out.print("\033[H\033[2JBEM VINDO AO MENU DE AEDS 3\n");
         System.out.println("===============================================");
         menu();
-//
-//        ListaInvertidaDAO listaInvertidaDAO = new ListaInvertidaDAO("lista.bin", true);
-//        AnimeDAO animeDAO = new AnimeDAO("novoAnime.bin","ListaAnime.csv");
-//        animeDAO.csvToByte();
-////        animeDAO.criarListaInvertidaType(listaInvertidaDAO);
-//        listaInvertidaDAO.insertType("TV",2);
     }
 
     public static void menu() throws Exception {
-        Scanner sc = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);    
         int op = 3;
         boolean loop = true;
         do {
@@ -85,17 +77,19 @@ public class Main {
                         System.out.println("Digite o ID buscado");
                         id = lerOpcao(sc);
                         indexOption = indexMenu(sc);
-                        ProgressBar searchProgress = new ProgressBar(("Searching id: " + id) , -1);
+                        ProgressMonitor searchProgress = new ProgressMonitor(("Searching id: " + id + " "));
                         switch (indexOption) {
                             case 1:
-                                searchProgress.startProcess();
+                                searchProgress.start();
                                 anime = animeDAO.indexSearchInBPlusTree(id, bPlusTreeDAO);
-                                searchProgress.printTime();
+                                searchProgress.endProcess();
+                                searchProgress.join();
                                 break;
                             case 2:
-                                searchProgress.startProcess();
+                                searchProgress.start();
                                 anime = animeDAO.indexSearchInHash(id, dynamicHashingDAO);
-                                searchProgress.printTime();
+                                searchProgress.endProcess();
+                                searchProgress.join();
                                 break;
                             default:
                                 System.out.println("Invalido");
@@ -109,24 +103,21 @@ public class Main {
                         }
                         break;
                     case 2:
-                        ProgressBar printProgress = new ProgressBar("Printing" , -1);
-                        printProgress.startProcess();
                         animeDAO.printAllAnime();
-                        printProgress.printTime();
                         break;
                     case 3:
                         System.out.println("Digite o ID do anime a ser apagado");
                         id = lerOpcao(sc);
                         indexOption = indexMenu(sc);
-                        ProgressBar deleteProgress = new ProgressBar("Deleting" , -1);
+                        ProgressMonitor deleteProgress = new ProgressMonitor("Deleting");
                         switch (indexOption) {
                             case 1:
-                                deleteProgress.startProcess();
+                                deleteProgress.start();
                                 pos = animeDAO.removeAnimeWithBPlusTree(id, bPlusTreeDAO);
                                 bPlusTreeDAO.deleteElement(id);
                                 break;
                             case 2:
-                                deleteProgress.startProcess();
+                                deleteProgress.start();
                                 pos = animeDAO.removeAnimeWithHash(id, dynamicHashingDAO);
                                 dynamicHashingDAO.removeElement(id);
                                 break;
@@ -136,7 +127,8 @@ public class Main {
                         }
                         animeDAO.removeListaInvertidaType(id, pos, listaInvertidaDAOType, bPlusTreeDAO);
                         animeDAO.removeListaInvertidaStudio(id, pos, listaInvertidaDAOStudio, bPlusTreeDAO);
-                        deleteProgress.printTime();
+                        deleteProgress.endProcess();
+                        deleteProgress.join();
                         break;
                     case 4:
                         System.out.println("Inserindo Anime");
@@ -166,7 +158,7 @@ public class Main {
                                 dynamicHashingDAO.updateElement(e);
                                 break;
                             case 2:
-                                pos = animeDAO.updateWithDynamicHash(id , anime , dynamicHashingDAO);
+                                pos = animeDAO.updateWithDynamicHash(id, anime, dynamicHashingDAO);
                                 e = new PageElement(id, pos);
                                 bPlusTreeDAO.updateElement(e);
                                 break;
@@ -174,8 +166,8 @@ public class Main {
                                 System.out.println("Invalido");
                                 break;
                         }
-                        listaInvertidaDAOType.updateIndex(anime.type, oldPointer-8, pos - 8);
-                        listaInvertidaDAOStudio.updateIndex(anime.studio, oldPointer-8, pos - 8);
+                        listaInvertidaDAOType.updateIndex(anime.type, oldPointer - 8, pos - 8);
+                        listaInvertidaDAOStudio.updateIndex(anime.studio, oldPointer - 8, pos - 8);
                         break;
                     case 6:
                         System.out.println("Buscar animes por type");
@@ -192,7 +184,7 @@ public class Main {
                         System.out.println("Digite o tamanho do bloco");
                         int blocos = lerOpcao(sc);
                         op = 2;
-                        recordDAO.intercalacaoBalanceada(caminhos , blocos);
+                        recordDAO.intercalacaoBalanceada(caminhos, blocos);
                         break;
                     case 9:
                         indexarAnimes(nomeArquivo, animeDAO, sc);
@@ -214,10 +206,11 @@ public class Main {
                         System.out.println("Digite o ID a ser buscado");
                         id = lerOpcao(sc);
 //                        System.out.println(id);
-                        ProgressBar searchProgress = new ProgressBar(("Search id: " + id) , -1);
-                        searchProgress.startProcess();
+                        ProgressMonitor searchProgress = new ProgressMonitor(("Search id: " + id));
+                        searchProgress.start();
                         anime = animeDAO.searchAnimeById(id);
-                        searchProgress.printTime();
+                        searchProgress.endProcess();
+                        searchProgress.join();
                         if (anime != null) {
                             anime.printAttributes();
                         } else {
@@ -336,8 +329,6 @@ public class Main {
     public static int indexMenu(Scanner sc) {
         int option = 0;
         do {
-
-
             System.out.println("=====================");
             System.out.println("Digite em qual tipo de index você deseja utilizar");
             System.out.println("(1) - Arvore B+");
