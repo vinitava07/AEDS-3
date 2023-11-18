@@ -52,16 +52,16 @@ public class AnimeDAO {
             bin.delete();
         }
         AtomicLong contador = new AtomicLong(0);
-        ProgressMonitor progressMonitor = new ProgressMonitor("Building Bin FILE", contador, 1000L);
         try {
             RandomAccessFile csvFile = new RandomAccessFile(csv, "r");
             RandomAccessFile binFile = new RandomAccessFile(bin, "rw");
 
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-
+            long amountOfRecords = 10000; // total amount of records: 18495
+            ProgressMonitor progressMonitor = new ProgressMonitor("Building Bin FILE", contador, amountOfRecords);
             progressMonitor.start();
-            while (contador.getAndIncrement() < 1000) {
+            while (contador.getAndIncrement() < amountOfRecords) {
                 animeText = csvFile.readLine();
                 anime.parseAnime(animeText);
                 r.setAnime(anime);
@@ -837,19 +837,8 @@ public class AnimeDAO {
     }
 
     public void huffmanCompression() {
-
-        Huffman huffman = new Huffman();
-        try {
-            RandomAccessFile raf = new RandomAccessFile(arquivo.csvFile, "wr");
-
-
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
+        HuffmanDAO huffmanDAO = new HuffmanDAO();
+        huffmanDAO.compressFile(this.arquivo.csvFile);
     }
 
     public void LZWCompression() {
