@@ -2,29 +2,39 @@ package dao;
 
 import model.Bits;
 import model.Huffman;
+import util.ProgressMonitor;
 
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class HuffmanDAO {
-
-    Huffman huffman;
+    private float compressionRate;
+    private Huffman huffman;
 
     public HuffmanDAO() {
         huffman = new Huffman();
     }
     //TODO: VERIFICAR O HUFFMAN DO ALEXANDRE, ESCREVER A ARVORE NO ARQUIVO
-    public void compressFile(String csvFileName) {
-        try (RandomAccessFile raf = new RandomAccessFile(csvFileName, "rw")) {
+    public void compressFile(String fileName) {
+        try (RandomAccessFile raf = new RandomAccessFile(fileName, "rw")) {
             StringBuilder sb = new StringBuilder();
-            while(raf.getFilePointer() < raf.length()) {
+            long originalSize = raf.length();
+            AtomicLong progress = new AtomicLong(0);
+            ProgressMonitor monitor = new ProgressMonitor("Preparing File", progress, originalSize);
+            monitor.start();
+            while(progress.get() < originalSize) {
                 sb.append(raf.readLine() + '\n');
+                progress.set(raf.getFilePointer());
             }
+            monitor.endProcess();
+            monitor.join();
             huffman.compressText(sb.toString());
             File dir = new File("../resources/huffman/");
             if (writeCompressed(dir)) {
-                System.out.println("Completed!!");
+                compressionRate = ((float) (huffman.getCompressedBin().length * 100.0) / originalSize);
+                System.out.printf("Completed!! Compression Rate: %.2f%%", compressionRate);
             } else {
                 System.out.println("Failed to compress File!!");
             }
