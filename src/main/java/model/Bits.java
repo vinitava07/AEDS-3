@@ -4,10 +4,11 @@ package model;
 import java.util.ArrayList;
 
 public class Bits extends ByteBits {
-
     private ArrayList<Byte> bitsArray;
+    private long readAmount;
     public Bits() {
         super();
+        readAmount = 1;
         bitsArray = new ArrayList<>();
         bitsArray.add((byte) 0);
     }
@@ -39,11 +40,18 @@ public class Bits extends ByteBits {
         }
     }
 
-    public void build() {
-        if (!empty()) {
-            adjustBits();
-            bitsArray.add(this.bits);
+    private void build() {
+        adjustBits();
+        bitsArray.add(this.bits);
+    }
+    public byte[] getFinalArray() {
+        bitsArray.set(0, (byte) (8 - amount));
+        if(!empty()) build();
+        byte[] bytes = new byte[bitsArray.size()];
+        for (int i = 0; i < bitsArray.size(); i++) {
+            bytes[i] = bitsArray.get(i);
         }
+        return bytes;
     }
 
     public void print() {
@@ -65,6 +73,12 @@ public class Bits extends ByteBits {
             System.out.printf("%8s" , string);
         }
         System.out.println();
+    }
+    public boolean canRead() {
+        return readAmount < (bitsArray.size() - 1);
+    }
+    public byte readByte() {
+        return bitsArray.get((int) ++readAmount);
     }
 
     public byte get(long index) {
@@ -99,6 +113,7 @@ class ByteBits {
     }
     protected void adjustBits() {
         bits <<= (8 - amount);
+        amount = 0;
     }
     protected void reSetBits() {
         bits = 0;

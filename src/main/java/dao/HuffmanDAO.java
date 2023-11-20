@@ -26,7 +26,7 @@ public class HuffmanDAO {
             ProgressMonitor monitor = new ProgressMonitor("Preparing File", progress, originalSize);
             monitor.start();
             while(progress.get() < originalSize) {
-                sb.append(raf.readLine() + '\n');
+                sb.append(raf.readLine()).append('\n');
                 progress.set(raf.getFilePointer());
             }
             monitor.endProcess();
@@ -87,15 +87,16 @@ public class HuffmanDAO {
 
 
     public boolean deCompressFile() {
-        try (RandomAccessFile raf = new RandomAccessFile("../resources/huffman/HuffmanCompression.bin", "r")) {
-            byte[] bytes = new byte[(int) raf.length()];
-            raf.read(bytes);
-            Bits bits = new Bits();
-            bits.setBitsArray(bytes);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
+//        try (RandomAccessFile raf = new RandomAccessFile("../resources/huffman/HuffmanCompression.bin", "r")) {
+//            byte[] bytes = new byte[(int) raf.length()];
+//            raf.read(bytes);
+//            Bits bits = new Bits();
+//            bits.setBitsArray(bytes);
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        this.huffman.deCompressBinary();
+        return true;
     }
 }

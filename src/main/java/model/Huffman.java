@@ -3,6 +3,8 @@ package model;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
+
 import util.*;
 
 class HuffmanTree {
@@ -84,9 +86,10 @@ class Node {
     }
 }
 public class Huffman {
+    private String originalText;
     private Bits compressedBin;
     private String compressedText;
-    private String deCompressedText;
+    private StringBuilder deCompressedText;
     private HuffmanTree huffmanTree;
     public class Element {
         private final char symbol;
@@ -107,7 +110,7 @@ public class Huffman {
     }
 
     public String getDeCompressedText() {
-        return deCompressedText;
+        return deCompressedText.toString();
     }
 
     public String getCompressedText() {
@@ -162,7 +165,7 @@ public class Huffman {
         total = 0;
         this.huffmanTree = new HuffmanTree(null);
         compressedBin = new Bits();
-        this.deCompressedText = "";
+        this.deCompressedText = new StringBuilder();
     }
 
     public long getTotal() {
@@ -170,7 +173,7 @@ public class Huffman {
     }
 
     public byte[] getCompressedBin() {
-        return compressedBin.getBitsArray();
+        return compressedBin.getFinalArray();
     }
 
     private boolean buildDictionary(String input) {
@@ -315,6 +318,7 @@ public class Huffman {
     }
 
     public void compressText(String input) {
+        this.originalText = input;
         buildDictionary(input);
         buildTree();
         buildTable();
@@ -335,6 +339,44 @@ public class Huffman {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void deCompressBinary() {
+        /** Ler tabela contendo os códigos de cada símbolo
+         * Por vias de poupar tempo iremos aproveitar o fato da árvore estar em memória primária*/
+        byte[] bytes = this.getCompressedBin();
+        int size = bytes.length;
+        AtomicLong i = new AtomicLong(1);
+        ProgressMonitor progressMonitor = new ProgressMonitor("Decompressing File", i, size);
+        progressMonitor.start();
+        Node temp = this.huffmanTree.getRoot();
+        byte shift = 0;
+        while (i.get() < size){
+            if(temp.getElement() != '\u001b') {
+                this.deCompressedText.append(temp.getElement());
+                temp = this.huffmanTree.getRoot();
+            } else {
+                if ((bytes[(int) i.get()] & 0b10000000) == 0) {
+                    temp = temp.getLeftNode();
+                } else {
+                    temp = temp.getRigthNode();
+                }
+                if(shift == 7) {
+                    i.incrementAndGet();
+                    shift = 0;
+                } else {
+                    bytes[(int) i.get()] <<= 1;
+                    shift++;
+                }
+            }
+        }
+        try {
+            progressMonitor.endProcess();
+            progressMonitor.join();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println(this.deCompressedText);
     }
 
     public void deCompressText() {
@@ -361,7 +403,7 @@ public class Huffman {
         }
         assert temp != null;
 
-        this.deCompressedText += temp.getElement();
+        this.deCompressedText.append(temp.getElement());
 
         return index;
     }
