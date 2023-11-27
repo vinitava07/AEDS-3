@@ -25,7 +25,7 @@ public class HuffmanDAO {
             AtomicLong progress = new AtomicLong(0);
             ProgressMonitor monitor = new ProgressMonitor("Preparing File", progress, originalSize);
             monitor.start();
-            while(progress.get() < originalSize) {
+            while (progress.get() < originalSize) {
                 sb.append(raf.readLine()).append('\n');
                 progress.set(raf.getFilePointer());
             }
@@ -34,8 +34,8 @@ public class HuffmanDAO {
             huffman.compressText(sb.toString());
             File dir = new File("../resources/huffman/");
             if (writeCompressed(dir)) {
-                compressionRate = ((float) (huffman.getCompressedBin().length * 100.0) / originalSize);
-                System.out.printf("Completed!! Compression Rate: %.2f%%", compressionRate);
+                compressionRate = ((1 - ((float) (huffman.getCompressedBin().length) / originalSize)) * 100);
+                System.out.printf("Completed!! COMPRESSION Rate: %.2f%%", compressionRate);
             } else {
                 System.out.println("Failed to compress File!!");
             }
