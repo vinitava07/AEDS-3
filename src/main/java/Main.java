@@ -14,7 +14,13 @@ public class Main {
 
         System.out.print("\033[H\033[2JBEM VINDO AO MENU DE AEDS 3\n");
         System.out.println("===============================================");
-        menu();
+//        menu();
+        AnimeDAO a = new AnimeDAO("ListaAnimeBin.bin","ListaAnime.csv");
+        a.csvToByte();
+//        RSADAO rsadao = new RSADAO();
+//        rsadao.criptografar();
+
+
     }
 
     public static void menu() throws Exception {

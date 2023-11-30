@@ -9,9 +9,11 @@ import java.io.File;
  */
 
 import java.io.RandomAccessFile;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicLong;
 
 import model.*;
@@ -22,11 +24,17 @@ public class AnimeDAO {
 
     Anime a;
     Arquivo arquivo;
+    BigInteger rsaKey;
+    String uncBin;
+    RSA rsa;
 
     public AnimeDAO(String bin, String csv) {
         a = new Anime();
         String binFile = "../resources/" + bin;
         String csvFile = "../resources/" + csv;
+        uncBin = "../resources/unc" + bin;
+
+        rsa = new RSA();
         arquivo = new Arquivo(binFile, csvFile);
     }
 
@@ -42,7 +50,7 @@ public class AnimeDAO {
 
     public void csvToByte() {
         File csv = new File(arquivo.csvFile);
-        File bin = new File(arquivo.binFile);
+        File bin = new File(uncBin);
         String animeText;
         Anime anime;
         Record r = new Record();
@@ -58,7 +66,7 @@ public class AnimeDAO {
 
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-            long amountOfRecords = 10000; // total amount of records: 18495
+            long amountOfRecords = 18495; // total amount of records: 18495
             ProgressMonitor progressMonitor = new ProgressMonitor("Building Bin FILE", contador, amountOfRecords);
             progressMonitor.start();
             while (contador.getAndIncrement() < amountOfRecords) {
@@ -71,13 +79,75 @@ public class AnimeDAO {
             }
             progressMonitor.endProcess();
             progressMonitor.join();
-
+            cipherFile(binFile);
             csvFile.close();
             binFile.close();
 
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void cipherFile(RandomAccessFile rafBin) {
+        try {
+            RandomAccessFile raf = new RandomAccessFile("../resources/ListaAnimeC.bin", "rw");
+            Scanner sc = new Scanner(System.in);
+            System.out.println("Digite sua chave RSA gerada: ");
+            BigInteger b = new BigInteger(sc.nextLine());
+            byte[] bArray;
+            String line;
+            StringBuilder sb = new StringBuilder();
+            rafBin.seek(0);
+            ProgressMonitor progressMonitor = new ProgressMonitor("Escrevendo arquivo criptografado: ");
+            progressMonitor.start();
+            System.out.println();
+            while ((line = rafBin.readLine()) != null) {
+                sb.append(line);
+                sb.append('\n');
+            }
+            rsa.cipherMessage(b, sb.toString());
+            for (int i = 0; i < rsa.getcMessageSize(); i++) {
+                bArray = rsa.getcMessage()[i].toByteArray();
+                raf.write((byte) bArray.length);
+                raf.write(rsa.getcMessage()[i].toByteArray());
+            }
+            raf.write(-1);
+            progressMonitor.endProcess();
+            progressMonitor.join();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void uncipherFile() {
+        try {
+            System.out.println("Descriptografando aquivo: ");
+            RandomAccessFile rafBin = new RandomAccessFile("../resources/ListaAnimeBin.bin", "rw");
+            RandomAccessFile rafCiph = new RandomAccessFile("../resources/ListaAnimeC.bin", "rw");
+            ArrayList<BigInteger> arrayList = new ArrayList<>();
+            byte size;
+            byte[] bigInt;
+            rafCiph.seek(0);
+            while ((size = rafCiph.readByte()) != -1) {
+//                size = rafCiph.readByte();
+                bigInt = new byte[size];
+                rafCiph.read(bigInt, 0, size);
+                arrayList.add(new BigInteger(bigInt));
+
+            }
+            String uncString = "";
+            BigInteger[] n = new BigInteger[arrayList.size()];
+            for (int i = 0; i < arrayList.size(); i++) {
+                n[i] = arrayList.get(i);
+            }
+            uncString = rsa.uncipherMessage((n)).toString();
+            rafBin.write(uncString.getBytes());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     protected long writeAnimeBytes(Record r, RandomAccessFile raf, boolean update) throws Exception {
@@ -450,7 +520,7 @@ public class AnimeDAO {
                 AtomicLong i = new AtomicLong(0);
                 ProgressMonitor progressMonitor = new ProgressMonitor("Building Hash", i, raf.length() - 4);
                 progressMonitor.start();
-                while (i.get() < raf.length()-4) {
+                while (i.get() < raf.length() - 4) {
                     long dataFilePosition = raf.getFilePointer();
                     raf.read(byteArray, 0, 4);
                     validRecord = isValidRecord(byteArray[0]);
@@ -623,7 +693,7 @@ public class AnimeDAO {
                     }
                 }
                 listaInvertida.setPointers(pointers);
-                listaInvertida.setElement(types.get((int)j.get()).trim());
+                listaInvertida.setElement(types.get((int) j.get()).trim());
                 listFile.writeNewList(listaRaf, listaInvertida, true);
                 pointers = new ArrayList<>();
                 animeRaf.seek(4);
@@ -677,7 +747,7 @@ public class AnimeDAO {
             AtomicLong j = new AtomicLong(0);
             ProgressMonitor progressMonitor = new ProgressMonitor("Building Lista invertida Studio", j, studios.size());
             progressMonitor.start();
-            while (j.get() < studios.size()){
+            while (j.get() < studios.size()) {
                 for (int i = 4; (i < animeRaf.length()); i += (4 + animeLength)) {
                     recordPointer = animeRaf.getFilePointer();
                     animeRaf.read(bytes, 0, 4);
@@ -686,7 +756,7 @@ public class AnimeDAO {
                     animeID = animeRaf.readInt();
                     if (isValid) {
                         anime = getAnime(animeRaf);
-                        if (studios.get((int)j.get()).equals(anime.studio)) {
+                        if (studios.get((int) j.get()).equals(anime.studio)) {
                             pointers.add(recordPointer);
 //                            anime.printAttributes();
                         }
