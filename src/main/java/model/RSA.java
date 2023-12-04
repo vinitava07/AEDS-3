@@ -3,6 +3,7 @@ package model;
 import util.ProgressMonitor;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 public class RSA {
     private BigInteger publicKey; // E (e * d) mod z == 1; algoritimo de euclides
@@ -40,13 +41,12 @@ public class RSA {
         this.cMessage = cMessage;
     }
 
-    public void cipherMessage(BigInteger pubKey, String uMessage) {
-        message = uMessage;
-        cMessage = new BigInteger[uMessage.length()];
-        ProgressMonitor progressMonitor = new ProgressMonitor("Criptografando mensagem: ");
+    public void cipherMessage(BigInteger pubKey, byte[] bArray) {
+        cMessage = new BigInteger[bArray.length];
+        ProgressMonitor progressMonitor = new ProgressMonitor("Criptografando arquivo: ");
         progressMonitor.start();
-        for (int i = 0; i < message.length(); i++) {
-            cMessage[i] = new BigInteger(String.valueOf(Integer.valueOf(message.charAt(i)))).modPow(pubKey, n);
+        for (int i = 0; i < bArray.length; i++) {
+            cMessage[i] = new BigInteger((String.valueOf((bArray[i] & 0xFF)))).modPow(pubKey, n);
         }
         try {
             progressMonitor.endProcess();
@@ -54,21 +54,21 @@ public class RSA {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("Mensagem criptografada");
+//        System.out.println("Mensagem criptografada");
         cMessageSize = cMessage.length;
 
     }
 
-    public StringBuilder uncipherMessage(BigInteger[] cipher) {
+    public byte[] uncipherMessage(BigInteger[] cipher) {
         if (cMessage == null) {
             System.out.println("Não há mensagem criptografada");
             return null;
         }
-        ProgressMonitor progressMonitor = new ProgressMonitor("Descriptografando mensagem: ");
+        ProgressMonitor progressMonitor = new ProgressMonitor("Descriptografando arquivo: ");
         progressMonitor.start();
-        StringBuilder uncMessage = new StringBuilder();
+        byte[] bArray = new byte[cipher.length];
         for (int i = 0; i < cMessage.length; i++) {
-            uncMessage.append((char) (cMessage[i].modPow(privateKey, n).intValue()));
+            bArray[i] = (cMessage[i].modPow(privateKey, n).byteValue());
         }
         try {
             progressMonitor.endProcess();
@@ -77,7 +77,8 @@ public class RSA {
             e.printStackTrace();
         }
 
-        return uncMessage;
+        return bArray;
+//        return uncMessage;
 
     }
 
@@ -107,7 +108,7 @@ public class RSA {
         int cont = 0;
         BigInteger b = new BigInteger(z.toString(0));
 
-        for (BigInteger i = new BigInteger("2"); cont != 5670 && i.compareTo(aux) < 1; i = i.add(BigInteger.ONE)) {
+        for (BigInteger i = new BigInteger("2"); cont != 7000 && i.compareTo(aux) < 1; i = i.add(BigInteger.ONE)) {
 
             if (isCoprime(i, b)) {
                 cont += 1;
