@@ -27,6 +27,7 @@ public class AnimeDAO {
     BigInteger rsaKey;
     String uncBin;
     RSA rsa;
+    String publicKey;
 
     public AnimeDAO(String bin, String csv) {
         a = new Anime();
@@ -50,9 +51,12 @@ public class AnimeDAO {
 
     public void csvToByte() {
         File csv = new File(arquivo.csvFile);
+        Scanner sc = new Scanner(System.in);
         File bin = new File(uncBin);
         String animeText;
         Anime anime;
+        System.out.println("Digite sua chave RSA gerada: ");
+        this.publicKey = sc.nextLine();
         Record r = new Record();
         // (animeText = csvFile.readLine()) != null
         if (bin.exists()) {
@@ -102,8 +106,7 @@ public class AnimeDAO {
             }
             RandomAccessFile raf = new RandomAccessFile("../resources/ListaAnimeC.bin", "rw");
             Scanner sc = new Scanner(System.in);
-            System.out.println("Digite sua chave RSA gerada: ");
-            BigInteger b = new BigInteger(sc.nextLine());
+            BigInteger b = new BigInteger(this.publicKey);
             byte[] bArray;
             String line;
             StringBuilder sb = new StringBuilder();
@@ -602,8 +605,14 @@ public class AnimeDAO {
         Anime result = null;
         try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "r")) {
             if (pointer > 0) {
-                raf.seek(pointer);
-                result = getAnime(raf);
+                raf.seek(pointer - 8);
+                byte[] t = new byte[4];
+                raf.read(t, 0, 4);
+                boolean valid = isValidRecord(t[0]);
+                if (valid) {
+                    raf.seek(pointer);
+                    result = getAnime(raf);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -623,6 +632,7 @@ public class AnimeDAO {
             raf.read(bytes, 0, 4);
             raf.seek(pointer - 8);
             changeGraveyard(raf, bytes);
+            cipherFile(raf);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -652,9 +662,16 @@ public class AnimeDAO {
 //        System.out.println("Hash: " + pointer);
         Anime result = null;
         try (RandomAccessFile raf = new RandomAccessFile(this.arquivo.binFile, "r")) {
+
             if (pointer > 0) {
-                raf.seek(pointer + 8);
-                result = getAnime(raf);
+                raf.seek(pointer);
+                byte[] t = new byte[4];
+                raf.read(t, 0, 4);
+                boolean valid = isValidRecord(t[0]);
+                if (valid) {
+                    raf.seek(pointer + 8);
+                    result = getAnime(raf);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -677,6 +694,7 @@ public class AnimeDAO {
                 raf.seek(raf.getFilePointer() - 4);
                 changeGraveyard(raf, bytes);
                 index.removeElement(id);
+                cipherFile(raf);
 
             }
         } catch (Exception e) {
@@ -755,6 +773,7 @@ public class AnimeDAO {
             }
             progressMonitor.endProcess();
             progressMonitor.join();
+            cipherFile(animeRaf);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -831,6 +850,7 @@ public class AnimeDAO {
             }
             progressMonitor.endProcess();
             progressMonitor.join();
+            cipherFile(animeRaf);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -844,6 +864,7 @@ public class AnimeDAO {
             raf.seek(pos + 8);
             Anime a = getAnime(raf);
             listaInvertidaDAO.deleteIndice(a.type, pos);
+            cipherFile(raf);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -858,6 +879,7 @@ public class AnimeDAO {
             raf.seek(pos + 8);
             Anime a = getAnime(raf);
             listaInvertidaDAO.deleteIndice(a.studio, pos);
+            cipherFile(raf);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -910,7 +932,7 @@ public class AnimeDAO {
                     writeAnimeBytes(r, raf, false);
                 }
 //                System.out.println("Registro atualizado!");
-
+                cipherFile(raf);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -962,6 +984,7 @@ public class AnimeDAO {
                     raf.seek(where);
                     writeAnimeBytes(r, raf, false);
                 }
+                cipherFile(raf);
 //                System.out.println("Registro atualizado!");
 
             } catch (Exception e) {

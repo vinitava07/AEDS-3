@@ -211,14 +211,15 @@ public class Main {
                             case 2:
                                 deleteProgress.start();
                                 pos = animeDAO.removeAnimeWithHash(id, dynamicHashingDAO);
-                                dynamicHashingDAO.removeElement(id);
+//                                dynamicHashingDAO.removeElement(id);
                                 break;
                             default:
                                 System.out.println("Invalido");
                                 break;
                         }
-                        animeDAO.removeListaInvertidaType(id, pos, listaInvertidaDAOType, bPlusTreeDAO);
-                        animeDAO.removeListaInvertidaStudio(id, pos, listaInvertidaDAOStudio, bPlusTreeDAO);
+
+//                        animeDAO.removeListaInvertidaType(id, pos, listaInvertidaDAOType, bPlusTreeDAO);
+//                        animeDAO.removeListaInvertidaStudio(id, pos, listaInvertidaDAOStudio, bPlusTreeDAO);
                         deleteProgress.endProcess();
                         deleteProgress.join();
                         break;
