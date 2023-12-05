@@ -376,7 +376,7 @@ public class Huffman {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(this.deCompressedText);
+//        System.out.println(this.deCompressedText);
     }
 
     public void deCompressText() {

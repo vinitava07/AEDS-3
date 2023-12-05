@@ -44,13 +44,13 @@ public class LZWDAO {
             bitManipulationDAO.writeBytes(rafLZW, lzw.compressedTxt.toString());
             System.out.println("Escrita finalizada");
             System.out.println("binário necessário: " + log2);
-            System.out.println("size: " + lzw.compressedList.size());
+//            System.out.println("size: " + lzw.compressedList.size());
             double originalBits = sb.toString().getBytes().length * 8;
             double compressedBits = log2 * lzw.compressedList.size();
             System.out.println("compressed bits: " + compressedBits);
             System.out.println("original bits: " + originalBits);
-            System.out.println("compression rate: "
-                    + (1 - (compressedBits / originalBits)));
+            float compressionRate = (float) ((1 - (compressedBits / originalBits)) * 100);
+            System.out.printf("Compression rate:  %.2f%%\n", compressionRate);
 
 
         } catch (Exception e) {

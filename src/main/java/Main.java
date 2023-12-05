@@ -15,6 +15,15 @@ public class Main {
         System.out.print("\033[H\033[2JBEM VINDO AO MENU DE AEDS 3\n");
         System.out.println("===============================================");
         menu();
+//        AnimeDAO a = new AnimeDAO("ListaAnimeBin.bin","ListaAnime.csv");
+//        a.csvToByte();
+//        a.uncipherFile();
+//        System.out.println("procura ");
+//        a.searchAnimeById(10);
+//        RSADAO rsadao = new RSADAO();
+//        rsadao.criptografar();
+
+
     }
 
     public static void menu() throws Exception {
@@ -202,14 +211,15 @@ public class Main {
                             case 2:
                                 deleteProgress.start();
                                 pos = animeDAO.removeAnimeWithHash(id, dynamicHashingDAO);
-                                dynamicHashingDAO.removeElement(id);
+//                                dynamicHashingDAO.removeElement(id);
                                 break;
                             default:
                                 System.out.println("Invalido");
                                 break;
                         }
-                        animeDAO.removeListaInvertidaType(id, pos, listaInvertidaDAOType, bPlusTreeDAO);
-                        animeDAO.removeListaInvertidaStudio(id, pos, listaInvertidaDAOStudio, bPlusTreeDAO);
+
+//                        animeDAO.removeListaInvertidaType(id, pos, listaInvertidaDAOType, bPlusTreeDAO);
+//                        animeDAO.removeListaInvertidaStudio(id, pos, listaInvertidaDAOStudio, bPlusTreeDAO);
                         deleteProgress.endProcess();
                         deleteProgress.join();
                         break;

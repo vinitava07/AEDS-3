@@ -130,10 +130,10 @@ public class DynamicHashingDAO {
             RandomAccessFile raf = new RandomAccessFile(this.file.binFile, "rw");
             bucketDAO.overWrite(raf);
             raf.close();
-            System.err.println("Element successfully removed!");
+            System.out.println("Element successfully removed!");
             status = true;
         } catch (Exception e) {
-            System.err.println("Failed to remove element!");
+            System.out.println("Failed to remove element!");
             e.printStackTrace();
             status = false;
         }
@@ -166,10 +166,16 @@ public class DynamicHashingDAO {
     public long search(int id) {
         PageElement result = new PageElement(-1 , -1);
         try {
-            if(id < 0) throw new NoSuchElementException("Invalid ID! There can not exists an negative ID!");
+            if(id < 0)  {
+                System.out.println("Invalid ID! There can not exists an negative ID!");
+                return -1;
+            }
             DataBucketDAO bucketDAO = searchBucket(id);
             result = bucketDAO.bucket.search(id);
-            if(result == null) throw new NoSuchElementException("ID: " + id + " not found!");
+            if(result == null) {
+                System.out.println("ID: " + id + " not found!");
+                return -1;
+            }
 //            System.out.println(result.getId() + " -- " + result.getPointer());
 //            bucketDAO.bucket.print();
         }catch (Exception e) {
