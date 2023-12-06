@@ -45,6 +45,7 @@ public class AnimeDAO {
     }
 
     public AnimeDAO() {
+        rsa = new RSA();
         arquivo = null;
         a = null;
     }
@@ -994,6 +995,22 @@ public class AnimeDAO {
         File f = new File(arquivo.binFile);
         f.delete();
         return newPosition;
+    }
+
+    public void intercalation(int caminho, int bloco) {
+        uncipherFile();
+        System.out.println(arquivo.binFile);
+        RecordDAO recordDAO = new RecordDAO(arquivo.binFile);
+        File f = new File(arquivo.binFile);
+        recordDAO.intercalacaoBalanceada(caminho, bloco);
+        try (RandomAccessFile raf = new RandomAccessFile(f, "rw")) {
+            cipherFile(raf);
+            f.delete();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
     }
 
 }

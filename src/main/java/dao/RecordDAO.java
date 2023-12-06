@@ -94,6 +94,7 @@ public class RecordDAO extends AnimeDAO {
             }
 
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("ERRO SORT AND INSERT");
         }
 

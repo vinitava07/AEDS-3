@@ -271,13 +271,12 @@ public class Main {
                         listaInvertidaDAOStudio.printIndex(animeDAO);
                         break;
                     case 8:
-                        RecordDAO recordDAO = new RecordDAO(nomeBin);
                         System.out.println("Digite a quantidade de caminhos");
                         int caminhos = lerOpcao(sc);
                         System.out.println("Digite o tamanho do bloco");
                         int blocos = lerOpcao(sc);
                         op = 2;
-                        recordDAO.intercalacaoBalanceada(caminhos, blocos);
+                        animeDAO.intercalation(caminhos, blocos);
                         break;
                     case 9:
                         indexarAnimes(nomeArquivo, animeDAO, sc);
@@ -337,12 +336,11 @@ public class Main {
                         System.out.println("Arquivo não indexado");
                         break;
                     case 8:
-                        RecordDAO recordDAO = new RecordDAO(nomeBin);
                         System.out.println("Digite a quantidade de caminhos");
                         int caminhos = lerOpcao(sc);
                         System.out.println("Digite o tamanho do bloco");
                         int blocos = lerOpcao(sc);
-                        recordDAO.intercalacaoBalanceada(caminhos, blocos);
+                        animeDAO.intercalation(caminhos, blocos);
                         System.out.println("Arquivo principal reordenado, reindexação necessária");
                         op = 2;
                         break;
