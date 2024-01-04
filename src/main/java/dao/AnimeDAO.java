@@ -75,7 +75,7 @@ public class AnimeDAO {
 
             csvFile.readLine(); // read csv file header
             anime = new Anime();
-            long amountOfRecords = 100; // total amount of records: 18495
+            long amountOfRecords = 18495; // total amount of records: 18495
             ProgressMonitor progressMonitor = new ProgressMonitor("Building Bin FILE", contador, amountOfRecords);
             progressMonitor.start();
             while (contador.getAndIncrement() < amountOfRecords) {
